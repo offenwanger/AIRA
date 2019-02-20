@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Meta data -->
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable=no">
+
+<!-- Remote third Party libraries -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+<!-- Local third Party libraries -->
+<script src="libs/pdf.js"></script>
+<script src="libs/pdf.worker.js"></script>
+
+<!-- Site code -->
+<link rel="stylesheet" href="css/main.css"></style>
+</head>
+
+<body>
+<!-- non visible component -->
+<input type="file" id="file-to-upload" accept="application/pdf" />
+
+<!-- Top Bar -->
+<div class="navbar">
+	<div class="dropdown">
+		<button class="dropbtn"> 
+				<i class="material-icons">menu</i>
+		</button>
+		<div class="dropdown-content">
+			<a class="unimplemented">New Project</a>
+			<a class="unimplemented">Open Project</a>
+		</div>
+	</div>
+	<div class="page-header-name"> Project 1 </div> 
+</div>
+
+<div class="row">
+	<div class="column left">
+		<div id="pdf-scetion">
+			<div id="pdf-section-header">
+					<div class="dropdown">
+						<button class="dropbtn"> 
+							<i class="material-icons">menu</i>
+						</button>
+						<div class="dropdown-content">
+							<a class="unimplemented">Open PDF</a>
+							<a id="upload-button">Upload PDF</a> 
+							<a class="unimplemented">Batch upload PDF</a>
+						</div>
+					</div>
+					<div class="page-header-name"> PDFs </div>
+			</div>
+			<div style="background-color: #333; margin:10px">
+					<a style="padding:5px">Recent</a>
+					<a>Conversational Style </a>
+					<a>Pdf1</a>
+			</div>
+		</div>
+
+		<div id="questions-scetion">
+				<div id="questions-section-header">
+						<div class="dropdown">
+							<button class="dropbtn"> 
+								<i class="material-icons">menu</i>
+							</button>
+							<div class="dropdown-content">
+								<a class="unimplemented">Add Question</a>
+								<a class="unimplemented">Export results</a>
+							</div>
+						</div>
+						<div class="page-header-name"> Questions </div>
+				</div>
+				<div style="background-color: #333; margin:10px">
+
+						<button class="accordion">How many participants are in each paper?</button>
+						
+						<div class="panel">
+							<button>Edit Question</button>
+							<p>There were five participants in the first study.</p>
+							<input style="margin:10px" type="text" value = 5></input>
+
+							<p>The second study included 7 participants.</p>
+							<input style="margin:10px" type="text" value = 7></input>
+							
+							<button style="display:block">...</button>
+						</div>
+
+						<button class="accordion">Given the lack of information generally provided to people to solve complex issues, is this question mainly just meant to be veyr long?</button>
+						<div class="panel">
+								<button>Edit Question</button>
+								<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+								<input style="margin:10px" type="text" value = 7></input>
+								<button style="display:block">...</button>
+						</div>
+
+						<button class="accordion">blah</button>
+						<div class="panel">
+								<button>Edit Question</button>
+								<button style="display:block">...</button>
+						</div>
+
+						<button class="etc">...</button>
+				</div>
+			</div>
+	</div>
+		
+	<div class="column middle">
+		<div id="pdf-main-container">
+			<div id="pdf-loader">Loading document ...</div>
+			<div id="pdf-contents">
+				<div id="pdf-meta">
+					<div id="pdf-buttons">
+						<button id="pdf-prev">Previous</button>
+						<button id="pdf-next">Next</button>
+					</div>
+					<div id="page-count-container">Page <div id="pdf-current-page"></div> of <div id="pdf-total-pages"></div></div>
+				</div>
+					<canvas id="pdf-canvas" width="400"></canvas>
+					<div id="text-layer"></div>
+					<div id="page-loader">Loading page ...</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="column right">
+		<div class="page-header-name"> Recommended Sources </div>
+		<button style="padding:10px;margin:10px;background-color: lightgray"></buttonstyle>Filter</button>
+		<div class="page-header-name">Pdf1</div>
+		<p style="padding:10px;margin:10px;background-color: lightgray">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+		<div class="page-header-name">Conversational Style</div>
+		<p style="padding:10px;margin:10px;background-color: lightgray"> Bother. </p>
+		<p style="padding:10px;margin:10px;background-color: lightgray"> Acutally nevermind... </p>
+	</div>
+</div>
+
+<script src="pdfview.js">
+	// Load in the Javascript to be applied to the buttons
+</script>
+<script src="main.js">
+	// Load the accordion javascript
+</script>
+</body>
+</html>
