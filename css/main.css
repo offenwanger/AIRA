@@ -162,6 +162,16 @@ body {
 			other CSS
 ---------------------------------------------------*/
 
+.clickable:hover {
+	background-color: #ddd;
+}
+
+
+.clickable2:hover {
+	background-color: #333 !important;
+}
+
+
 #file-to-upload {
 	display: none;
 }
