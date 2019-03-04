@@ -1,10 +1,27 @@
 
 /* ------------------------------------------------
-			Menu CSS
+			My CSS
 ---------------------------------------------------*/
 body {
 	font-family: Arial, Helvetica, sans-serif;
 }
+
+.header-label {
+	color: darkgrey;
+	padding: 5px;
+	font-size: 12pt;
+}
+
+.label {
+	color: darkgrey;
+	padding-left: 10px;
+	font-size: 10pt;
+}
+
+/* ------------------------------------------------
+			Menu CSS
+---------------------------------------------------*/
+
 
 .unimplemented {
 	color: grey !important;
@@ -81,48 +98,6 @@ body {
 	display: block;
   }
 
-
-/* ------------------------------------------------
-			Accordion CSS
----------------------------------------------------*/
-	
-	.accordion {
-		background-color: #333;
-		color: white;
-		cursor: pointer;
-		padding: 18px;
-		width: 100%;
-		border: none;
-		text-align: left;
-		outline: none;
-		font-size: 18px;
-		transition: 0.4s;
-	}
-
-	.etc {
-		background-color: #333;
-		color: white;
-		cursor: pointer;
-		padding: 18px;
-		width: 100%;
-		border: none;
-		text-align: left;
-		outline: none;
-		font-size: 18px;
-		transition: 0.4s;
-	}
-	
-	.active, .accordion:hover {
-		background-color: #ccc; 
-	}
-	
-	.panel {
-		padding: 0 18px;
-		display: none;
-		background-color: lightgrey;
-		overflow: hidden;
-	}
-
 /* ------------------------------------------------
 			Sidebar CSS
 ---------------------------------------------------*/
@@ -131,14 +106,21 @@ body {
   float: left;
 }
 
-.left, .right {
+.left {
   width: 25%;
-  height: 100%;
-  background-color: #111;
+	height: 100%;
+	background: #000
 }
 
 .middle {
+  width:25%;
+  height: 100%;
+	background: #111
+}
+
+.right {
   width: 50%;
+  height: 100%;
 }
 
 .sidenav {
@@ -152,24 +134,75 @@ body {
 }
 
 .column a {
-  padding: 6px 8px 6px 16px;
+  padding: 8px 8px 8px 16px;
   text-decoration: none;
-  font-size: 25px;
-  display: block;
+  font-size: 16px;
+	display: block;
+	color:white;
 }
+
+.column a:hover {
+	background-color: #ddd;
+}
+
+.column p {
+	padding:10px;
+	margin:10px; 
+	color:black;
+	background-color: lightgray
+}
+
+.column p:hover {
+	background-color: #333
+}
+
+/* ------------------------------------------------
+			Accordion CSS
+---------------------------------------------------*/
+	
+	.accordion {
+		background-color: #333;
+		color: white;
+		cursor: pointer;
+		padding: 8px;
+		width: 100%;
+		border: none;
+		text-align: left;
+		outline: none;
+		font-size: 16px;
+	}
+	
+	.active, .accordion:hover {
+		background-color: #ccc; 
+		color: #000;
+	}
+	
+	.panel {
+		padding: 0 5px;
+		display: none;
+		background-color: lightgrey;
+		overflow: hidden;
+	}
+
+	.panel a {
+		background-color: lightgrey;
+		overflow: hidden;
+		color: black;
+	}
+
+	.panel input {
+		margin-left: 18px;
+	}
+
+	.panel .label {
+		color: #333;
+	}
+
 
 /* ------------------------------------------------
 			other CSS
 ---------------------------------------------------*/
 
-.clickable:hover {
-	background-color: #ddd;
-}
-
-
-.clickable2:hover {
-	background-color: #333 !important;
-}
 
 
 #file-to-upload {

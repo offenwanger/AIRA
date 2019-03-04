@@ -106,8 +106,6 @@ if(['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1)
     return;
 }
 
-$("#upload-button").hide();
-
 // Send the object url of the pdf
 showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
 });

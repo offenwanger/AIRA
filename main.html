@@ -37,76 +37,88 @@
 
 <div class="row">
 	<div class="column left">
+			<div class="header-label"> Recommended Sources </div>
+			<div class="label">Pdf1</div>
+			<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+				Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, 
+				when an unknown printer took a galley of type and scrambled it to make a 
+				type specimen book.</p>
+			<div class="label">Conversational Style</div>
+			<p> This particular source is something of a bother </p>
+			<p> Acutally nevermind... this one is worse</p>
+			<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+				Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, 
+				when an unknown printer took a galley of type and scrambled it to make a type 
+				specimen book. It has survived not only five centuries, but also the leap into 
+				electronic typesetting, remaining essentially unchanged. It was popularised in 
+				the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, 
+				and more recently with desktop publishing software like Aldus PageMaker 
+				including versions of Lorem Ipsum.</p>
+	</div>
+
+	<div class="column middle">
+		<div class="header-label"> Recent PDFs </div>
 		<div id="pdf-scetion">
-			<div id="pdf-section-header">
-					<div class="dropdown">
-						<button class="dropbtn"> 
-							<i class="material-icons">menu</i>
-						</button>
-						<div class="dropdown-content">
-							<a class="unimplemented">Open PDF</a>
-							<a id="upload-button">Upload PDF</a> 
-							<a class="unimplemented">Batch upload PDF</a>
-						</div>
-					</div>
-					<div class="page-header-name"> PDFs </div>
-			</div>
-			<div style="background-color: #333; color:white; margin:10px">
-					<a style="padding:5px">Recent</a>
-					<a class="clickable">ConversationalStyle.pdf</a>
-					<a class="clickable">Pdf1.pdf</a>
-					<a class="clickable">...</a>
+			<div style="background-color: #333; margin:10px; overflow: hidden;">
+					<a>ConversationalStyle.pdf</a>
+					<a>Pdf1.pdf</a>
+					<a>... see all PDFs</a>
+					<a id="upload-button">+ upload PDF</a> 
 			</div>
 		</div>
 
 		<div id="questions-scetion">
-				<div id="questions-section-header">
-						<div class="dropdown">
-							<button class="dropbtn"> 
-								<i class="material-icons">menu</i>
-							</button>
-							<div class="dropdown-content">
-								<a class="unimplemented">Add Question</a>
-								<a class="unimplemented">Export results</a>
-							</div>
-						</div>
-						<div class="page-header-name"> Questions </div>
-				</div>
+				<div class="header-label"> Questions </div>
 				<div style="background-color: #333; margin:10px">
 
 						<button class="accordion">How many participants are in each paper?</button>
 						
 						<div class="panel">
-							<button>Edit Question</button>
-							<p class="clickable2">There were five participants in the first study.</p>
-							<input style="margin:10px" type="text" value = 5></input>
+							<a>✎ Edit Question</a>
+							<div class="label">Sources</div>
+							<p>There were five participants in the first study.</p>
+							<input type="text" value = 5></input>
 
-							<p class="clickable2">The second study included 7 participants.</p>
-							<input style="margin:10px" type="text" value = 7></input>
+							<p>The second study included 7 participants.</p>
+							<input type="text" value = 7></input>
 							
-							<button style="display:block">...</button>
+							<a style="display:block">... see all sources</a>
 						</div>
 
-						<button class="accordion">Given the lack of information generally provided to people to solve complex issues, is this question mainly just meant to be veyr long?</button>
+						<button class="accordion">
+							Given the lack of information generally provided to people to solve complex 
+							issues, is this question mainly just meant to be veyr long?
+						</button>
 						<div class="panel">
-								<button>Edit Question</button>
-								<p class="clickable2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
-								<input style="margin:10px" type="text" value = 7></input>
-								<button style="display:block">...</button>
+								<a>✎ Edit Question</a>
+								<div class="label">Sources</div>
+								<p>
+									Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+									Lorem Ipsum has been the industry's standard dummy text ever since the 
+									1500s, when an unknown printer took a galley of type and scrambled it to 
+									make a type specimen book. It has survived not only five centuries, but 
+									also the leap into electronic typesetting, remaining essentially unchanged. 
+									It was popularised in the 1960s with the release of Letraset sheets 
+									containing Lorem Ipsum passages, and more recently with desktop publishing 
+									software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+								<input type="text" value = 7></input>
+								<a style="display:block">... see all sources</a>
 						</div>
 
 						<button class="accordion">blah</button>
 						<div class="panel">
-								<button>Edit Question</button>
-								<button style="display:block">...</button>
+								<a>✎ Edit Question</a>
+								<div class="label">Sources</div>
+								<a style="display:block">... see all sources</a>
 						</div>
 
-						<button class="etc clickable">...</button>
+						<a>... see all questions</a>
+						<a>+ add question</a>
 				</div>
 			</div>
 	</div>
 		
-	<div class="column middle">
+	<div class="column right">
 		<div id="pdf-main-container">
 			<div id="pdf-loader">Loading document ...</div>
 			<div id="pdf-contents">
@@ -115,8 +127,11 @@
 						<button id="pdf-prev">Previous</button>
 						<button id="pdf-next">Next</button>
 					</div>
-					<div id="page-count-container">Page <div id="pdf-current-page"></div> of <div id="pdf-total-pages"></div></div>
+					<div id="page-count-container">
+						Page <div id="pdf-current-page"></div> of <div id="pdf-total-pages"></div>
+					</div>
 				</div>
+				<div>
 					<canvas id="pdf-canvas" width="400"></canvas>
 					<div id="text-layer"></div>
 					<div id="page-loader">Loading page ...</div>
@@ -125,15 +140,6 @@
 		</div>
 	</div>
 
-	<div class="column right">
-		<div class="page-header-name"> Recommended Sources </div>
-		<button style="padding:10px;margin:10px;background-color: lightgray"></buttonstyle>Filter</button>
-		<div class="page-header-name">Pdf1</div>
-		<p class='clickable2' style="padding:10px;margin:10px;background-color: lightgray">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
-		<div class="page-header-name">Conversational Style</div>
-		<p class='clickable2' style="padding:10px;margin:10px;background-color: lightgray"> Bother. </p>
-		<p class='clickable2' style="padding:10px;margin:10px;background-color: lightgray"> Acutally nevermind... </p>
-	</div>
 </div>
 
 <script src="pdfview.js">
