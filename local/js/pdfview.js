@@ -98,16 +98,18 @@ $("#upload-button").on('click', function() {
 $("#file-to-upload").trigger('click');
 });
 
-// When user chooses a PDF file
 $("#file-to-upload").on('change', function() {
-// Validate whether PDF
-if(['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
-    alert('Error : Not a PDF');
-    return;
-}
+    if(['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
+        alert('Error : Not a PDF');
+        return;
+    }
 
-// Send the object url of the pdf
-showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
+    const file = $("#file-to-upload").get(0).files[0];
+    const upload = new Upload(file);
+
+    upload.doUpload((filename)=>{
+        showPDF("/pdf/"+filename);
+    }, (error)=>{console.log(error)});
 });
 
 // Previous page of the PDF

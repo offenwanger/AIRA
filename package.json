@@ -1,0 +1,13 @@
+{
+  "name": "aira-server",
+  "version": "0.1.0",
+  "dependencies": {
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "formidable": "^1.2.1",
+    "fs": "0.0.1-security",
+    "http": "0.0.0",
+    "morgan": "^1.9.1",
+    "pdf2json": "^1.1.8"
+  }
+}

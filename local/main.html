@@ -13,13 +13,19 @@
 <script src="libs/pdf.js"></script>
 <script src="libs/pdf.worker.js"></script>
 
+<!-- Code libraries -->
+<script src="js/upload.js"></script>
+
 <!-- Site code -->
 <link rel="stylesheet" href="css/main.css"></style>
 </head>
 
 <body>
 <!-- non visible component -->
-<input type="file" id="file-to-upload" accept="application/pdf" />
+<form id="file-to-upload-form" method='post' action='upload' enctype="multipart/form-data">
+	<input type="file" id="file-to-upload" accept="application/pdf" />
+	<input id="file-to-upload-submit" type='submit'>
+</form>
 
 <!-- Top Bar -->
 <div class="navbar">
@@ -142,10 +148,10 @@
 
 </div>
 
-<script src="pdfview.js">
+<script src="js/pdfview.js">
 	// Load in the Javascript to be applied to the buttons
 </script>
-<script src="main.js">
+<script src="js/main.js">
 	// Load the accordion javascript
 </script>
 </body>
