@@ -1,3 +1,5 @@
 node_modules
 package-lock.json
 server/PDFs
+server/db/database.db
+server/db/database.db-journal
