@@ -6,18 +6,22 @@ let db;
 exports.storePDF = function(filename) {
   let db = getDB();
 
-  Promise.all([insertPDF(db, filename), fileToSentences(filename)]).then((results) => {
-    let pdfID = results[0];
-    let fileValues = results[1];
-    for(let i = 0; i<fileValues.length; i++) {
-      insertLineRow(db, pdfID, i, fileValues[i].startPage, fileValues[i].endPage, 
-        fileValues[i].lineText).catch((err)=>{
-          console.log("Insert Failed: "+ err);
-        });
-    }
-  }).catch((err)=>{
-    console.log("Error inserting PDF: "+err);
-  })
+  return Promise.all([insertPDF(db, filename), fileToSentences(filename)])
+    .catch((err)=>{
+      throw Error("Error inserting PDF: " + err);
+    })
+    .then((results) => {
+      let pdfID = results[0];
+      let fileValues = results[1];
+      console.log("Starting to store PDF");
+      for(let i = 0; i<fileValues.length; i++) {
+        insertLineRow(db, pdfID, i, fileValues[i].startPage, fileValues[i].endPage, 
+          fileValues[i].lineText).catch((err)=>{
+            console.log("Insert Failed: "+ err);
+          });
+      }
+      console.log("Finished storing PDF");
+    });
 }
 
 function fileToSentences(filename) {
@@ -112,21 +116,26 @@ function insertPDF(db, filename) {
   return new Promise((resolve, reject) => {
     // TODO(offenwanger): If there is a duplicate filename or duplicate upload,
     // then this will duplicate the entry
-    let sql = `INSERT INTO 'Pdfs' (filename) VALUES ('` + filename + `');`;
-    db.run(sql);
-    sql = `SELECT * FROM 'Pdfs' WHERE filename LIKE '%` + filename + `%'`;
-    db.get(sql, [], (err, row) => {
+    let sql = `SELECT * FROM 'Pdfs' WHERE filename LIKE ?`;
+    db.get(sql, [filename], (err, row) => {
       if (err) {
-        reject(error);
+        reject("Error while checking for duplicates: "+err);
         return;
       }
 
-      if(!row || !row.id) {
-        reject("Error while retriving PDF id for "+filename+"!");
+      if(row) {
+        reject("Error "+filename+" already stored!");
         return;
       }
 
-      resolve(row.id);
+      sql = `INSERT INTO 'Pdfs' (filename) VALUES (?);`;
+      db.run(sql, [filename], function(err) {
+        if(err) {
+          reject("Database error while storing "+filename+": "+err);
+          return;
+        }
+        resolve(this.lastID);
+      });
     });
   });
 }
@@ -135,8 +144,7 @@ function insertPDF(db, filename) {
 function insertLineRow(db, pdfID, lineNumber, startPage, endPage, lineText) {
   return new Promise((resolve, reject) => {
     let sql = `INSERT INTO 'Sentences' (pdf, line_number, start_page, end_page, line_text) 
-               VALUES (` + pdfID + `, ` + lineNumber + `, ` + startPage + `, 
-               ` + endPage + `, '` + lineText + `');`;
-    db.run(sql, (err)=>err?reject(err):resolve());
+               VALUES (?, ?, ?, ?, ?)`;
+    db.run(sql, [pdfID, lineNumber, startPage, endPage, lineText], (err)=>err?reject(err):resolve());
   });
 };

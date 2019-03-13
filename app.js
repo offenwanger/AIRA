@@ -25,10 +25,15 @@ app.post('/upload', function(req, res) {
     })
     .on('file', (name, file) => {
       console.log('File Uploaded');
-      // Answer the post request with the name of the uploaded file. 
-      // This will tell the client how to request and display it.
-      res.end(file.name);
-      database.storePDF(file.name);
+      database.storePDF(file.name)
+        .then(()=>{
+          // Answer the post request with the name of the uploaded file. 
+          // This will tell the client how to request and display it.
+          res.end(file.name);
+        }).catch((error)=>{
+          console.log(error);
+          res.end();
+        });
     })
 });
 
