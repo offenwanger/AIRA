@@ -9,8 +9,14 @@ exports.storePDF = function(filename) {
   Promise.all([insertPDF(db, filename), fileToSentences(filename)]).then((results) => {
     let pdfID = results[0];
     let fileValues = results[1];
-    console.log("all promises resolved");
-    console.log(fileValues);
+    for(let i = 0; i<fileValues.length; i++) {
+      insertLineRow(db, pdfID, i, fileValues[i].startPage, fileValues[i].endPage, 
+        fileValues[i].lineText).catch((err)=>{
+          console.log("Insert Failed: "+ err);
+        });
+    }
+  }).catch((err)=>{
+    console.log("Error inserting PDF: "+err);
   })
 }
 
@@ -31,7 +37,7 @@ function fileToSentences(filename) {
       pdfData.formImage.Pages.forEach((page)=>{
         page.Texts.forEach((text)=>{
           text.R.forEach((textRun)=>{
-            lineText += textRun.T;
+            lineText += " " + textRun.T;
             // TODO: fix the issue with this breaking up decimal numbers etc.
             var sentenceTest = lineText.match(/([^\.!\?]+[\.!\?]+)|([^\.!\?]+$)/g);
             // Check if the line splits into sentences. 
@@ -124,3 +130,13 @@ function insertPDF(db, filename) {
     });
   });
 }
+
+
+function insertLineRow(db, pdfID, lineNumber, startPage, endPage, lineText) {
+  return new Promise((resolve, reject) => {
+    let sql = `INSERT INTO 'Sentences' (pdf, line_number, start_page, end_page, line_text) 
+               VALUES (` + pdfID + `, ` + lineNumber + `, ` + startPage + `, 
+               ` + endPage + `, '` + lineText + `');`;
+    db.run(sql, (err)=>err?reject(err):resolve());
+  });
+};
