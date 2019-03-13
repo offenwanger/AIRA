@@ -106,21 +106,22 @@ body {
   float: left;
 }
 
-.left {
-  width: 25%;
-	height: 100%;
-	background: #000
-}
 
-.middle {
+.left {
   width:25%;
   height: 100%;
 	background: #111
 }
 
-.right {
+.middle {
   width: 50%;
   height: 100%;
+}
+
+.right {
+  width: 25%;
+	height: 100%;
+	background: #000
 }
 
 .sidenav {

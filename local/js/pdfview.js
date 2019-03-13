@@ -104,12 +104,16 @@ $("#file-to-upload").on('change', function() {
         return;
     }
 
+    $("#pdf-contents").hide();
+
     const file = $("#file-to-upload").get(0).files[0];
     const upload = new Upload(file);
 
     upload.doUpload((filename)=>{
         showPDF("/pdf/"+filename);
-    }, (error)=>{console.log(error)});
+    }, (error)=>{
+        alert(error.responseText);
+    });
 });
 
 // Previous page of the PDF

@@ -32,7 +32,7 @@ app.post('/upload', function(req, res) {
           res.end(file.name);
         }).catch((error)=>{
           console.log(error);
-          res.end();
+          res.status(500).send('Upload Failed: '+error);
         });
     })
 });
