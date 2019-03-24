@@ -38,6 +38,20 @@ exports.getAllText = function() {
   });
 }
 
+exports.getAllPdfs = function() {
+  let db = getDB();
+
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM Pdfs", function(err, allRows) {
+      if (err) {
+        reject("Error while fetching pdfs: "+err);
+        return;
+      }
+      resolve(allRows);
+    });
+  });
+}
+
 //TODO: get actual sources.
 exports.getSources = function(question) {
   return [

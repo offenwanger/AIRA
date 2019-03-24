@@ -20,27 +20,27 @@ Upload.prototype.doUpload = function (success, failure) {
   formData.append("upload_file", true);
 
   $.ajax({
-      type: "POST",
-      url: "upload",
-      xhr: function () {
-          var myXhr = $.ajaxSettings.xhr();
-          if (myXhr.upload) {
-              myXhr.upload.addEventListener('progress', that.progressHandling, false);
-          }
-          return myXhr;
-      },
-      success: function (data) {
-        success(data);
-      },
-      error: function (error) {
-        failure(error);
-      },
-      async: true,
-      data: formData,
-      cache: false,
-      contentType: false,
-      processData: false,
-      timeout: 60000
+    type: "POST",
+    url: "upload",
+    xhr: function () {
+      var myXhr = $.ajaxSettings.xhr();
+      if (myXhr.upload) {
+        myXhr.upload.addEventListener('progress', that.progressHandling, false);
+      }
+      return myXhr;
+    },
+    success: function (data) {
+      success(data);
+    },
+    error: function (error) {
+      failure(error);
+    },
+    async: true,
+    data: formData,
+    cache: false,
+    contentType: false,
+    processData: false,
+    timeout: 60000
   });
 };
 

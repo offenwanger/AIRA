@@ -18,6 +18,12 @@ body {
 	font-size: 10pt;
 }
 
+#pdf-section {
+	background-color: #333; 
+	margin:10px; 
+	overflow: hidden;
+}
+
 /* ------------------------------------------------
 			Menu CSS
 ---------------------------------------------------*/
@@ -281,3 +287,53 @@ body {
 	cursor: text;
 	transform-origin: 0% 0%;
 }
+
+
+/* ------------------------------------------------
+			Popup box
+---------------------------------------------------*/
+#pdfs-popup {
+	/* Fade out the background. */
+	background:rgba(0,0,0,.4);
+	cursor:pointer;
+	display:none;
+	height:100%;
+	width:100%;
+	z-index:10000;
+	position:fixed;
+	text-align:center;
+	top:0;
+}
+#pdfs-popup .helper {
+	display:inline-block;
+	height:100%;
+	vertical-align:middle;
+}
+#pdfs-popup div {
+	background-color: #fff;
+	box-shadow: 10px 10px 60px #555;
+	display: inline-block;
+	height: auto;
+	max-width: 551px;
+	min-height: 100px;
+	vertical-align: middle;
+	width: 60%;
+	position: relative;
+	border-radius: 8px;
+	padding: 15px 5%;
+}
+#pdfs-popup a {
+	display: block;
+}
+#pdfs-popup a {
+	text-align: left;
+  padding: 8px 8px 8px 16px;
+  text-decoration: none;
+  font-size: 16px;
+	display: block;
+	color:black;
+}
+#pdfs-popup a:hover {
+	background-color: #ddd;
+}
+

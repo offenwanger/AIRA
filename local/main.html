@@ -18,6 +18,7 @@
 
 <!-- Site code -->
 <link rel="stylesheet" href="css/main.css"></style>
+<script src="js/main.js"></script>
 </head>
 
 <body>
@@ -44,13 +45,13 @@
 <div class="row">
 	<div class="column left">
 		<div class="header-label"> Recent PDFs </div>
-		<div id="pdf-scetion">
-			<div style="background-color: #333; margin:10px; overflow: hidden;">
-					<a>ConversationalStyle.pdf</a>
-					<a>Pdf1.pdf</a>
-					<a>... see all PDFs</a>
-					<a id="upload-button">+ upload PDF</a> 
+		<div id="pdf-section">
+			<div id="recent-pdfs">
+				<a class="pdf-button" pdf-id="1">ConversationalStyle.pdf</a>
+				<a class="pdf-button" pdf-id="2">Pdf1.pdf</a>
 			</div>
+			<a id="see-all-pdfs">... see all PDFs</a>
+			<a id="upload-button">+ upload PDF</a> 
 		</div>
 
 		<div id="questions-scetion">
@@ -149,11 +150,10 @@
 
 </div>
 
-<script src="js/pdfview.js">
-	// Load in the Javascript to be applied to the buttons
-</script>
-<script src="js/main.js">
-	// Load the accordion javascript
-</script>
+<div id="pdfs-popup">
+    <span class="helper"></span>
+    <div id="all-pdfs-list"></div>
+</div>
+
 </body>
 </html>

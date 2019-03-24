@@ -23,6 +23,16 @@ app.get('/', function (req, res) {
     console.log(recommendations.splice(0, numRecommendations));
   });
 });
+
+app.get('/pdflist', function (req, res) {
+  database.getAllPdfs().then((pdfs)=>{
+    res.end(JSON.stringify(pdfs));
+  }).catch((error) => {
+    console.log(error);
+    res.status(500).send('Failed to get PDFs: '+error);
+  });
+});
+
 app.use('/', express.static(__dirname + '/local'));
 
 app.use('/pdf', express.static(__dirname + '/server/PDFs'));
