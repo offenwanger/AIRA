@@ -62,9 +62,36 @@ $(window).load(function () {
     $('#pdfs-popup').hide();
     showPDF("/pdf/"+this.getAttribute("filename"));
   });
+  
 
-
-
+  /*********************************
+   * Recommendation Code
+   */
+  getRecommendations((results) =>{
+    let recommendationList = $("#recommendation-list");
+    // TODO: paginate the results.
+    let recommendations = results.splice(0, 10);
+    recommendations = recommendations.sort(function(a, b) {
+      var textA = a.row.filename.toUpperCase();
+      var textB = b.row.filename.toUpperCase();
+      return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+    });
+    let lastPDFname;
+    recommendations.forEach((recommendation) => {
+      if(lastPDFname != recommendation.row.filename) {
+        let label = document.createElement("div");
+        label.setAttribute("class", "label");
+        label.innerHTML = recommendation.row.filename;
+        recommendationList.append(label);
+        lastPDFname = recommendation.row.filename;
+      }
+      let p = document.createElement("p");
+      p.innerHTML = recommendation.text;
+      recommendationList.append(p);
+    });
+  }, (err) =>{
+    console.error("Could not get PDFs from Server: "+err);
+  });
 
   /**********************************
    * PDF code
@@ -202,18 +229,38 @@ $(window).load(function () {
 
   function getPdfList(success, failure) {
     $.ajax({
-    type: "GET",
-    url: "pdflist",
-    success: function (data) {
-      success(JSON.parse(data));
-    },
-    error: function (error) {
-      failure(error);
-    },
-    async: true,
-    cache: false,
-    contentType: false,
-    processData: false,
-    timeout: 60000
-  });}
+      type: "GET",
+      url: "pdflist",
+      success: function (data) {
+        success(JSON.parse(data));
+      },
+      error: function (error) {
+        failure(error);
+      },
+      async: true,
+      cache: false,
+      contentType: false,
+      processData: false,
+      timeout: 60000
+    });
+  }
+
+  function getRecommendations(success, failure) {
+    $.ajax({
+      type: "GET",
+      // The number of recommendations to get.
+      url: "recommendations?num=100",
+      success: function (data) {
+        success(JSON.parse(data));
+      },
+      error: function (error) {
+        failure(error);
+      },
+      async: true,
+      cache: false,
+      contentType: false,
+      processData: false,
+      timeout: 60000
+    });
+  }
 });

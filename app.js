@@ -13,15 +13,6 @@ app.engine('html', require('ejs').renderFile);
 
 app.get('/', function (req, res) {
   res.render(__dirname + '/local/main.html');
-
-  // At a later date this will distinguish between source sets. 
-  let project = 0;
-  let question = 0;
-  let numRecommendations = 10;
-
-  recommender.getRecommendations(question, database).then((recommendations)=>{
-    console.log(recommendations.splice(0, numRecommendations));
-  });
 });
 
 app.get('/pdflist', function (req, res) {
@@ -30,6 +21,23 @@ app.get('/pdflist', function (req, res) {
   }).catch((error) => {
     console.log(error);
     res.status(500).send('Failed to get PDFs: '+error);
+  });
+});
+
+app.get('/recommendations', function(req, res){
+  // At a later date this will distinguish between source sets. 
+  let project = 0;
+  let question = 0;
+  let numRecommendations = 10;
+
+  recommender.getRecommendations(question, database).then((recommendations)=>{
+    console.log(req.query);
+    if(req.query.num) {
+      recommendations = recommendations.splice(0, req.query.num);
+    } else {
+      recommendations = recommendations.splice(0, 10)
+    }
+    res.end(JSON.stringify(recommendations));
   });
 });
 

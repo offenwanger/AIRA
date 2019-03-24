@@ -28,7 +28,10 @@ exports.getAllText = function() {
   let db = getDB();
 
   return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM Sentences", function(err, allRows) {
+    db.all(`
+      SELECT * FROM Sentences 
+      INNER JOIN Pdfs ON Sentences.pdf = Pdfs.id;
+    `, function(err, allRows) {
       if (err) {
         reject("Error while fetching sentences: "+err);
         return;
