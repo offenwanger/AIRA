@@ -4,6 +4,7 @@ const app = express();
 const formidable = require('formidable')
 const http = require('http');
 const database = require("./server/database.js");
+const recommender = require("./server/recommender.js");
 
 const port = 3333;
 
@@ -12,6 +13,15 @@ app.engine('html', require('ejs').renderFile);
 
 app.get('/', function (req, res) {
   res.render(__dirname + '/local/main.html');
+
+  // At a later date this will distinguish between source sets. 
+  let project = 0;
+  let question = 0;
+  let numRecommendations = 10;
+
+  recommender.getRecommendations(question, database).then((recommendations)=>{
+    console.log(recommendations.splice(0, numRecommendations));
+  });
 });
 app.use('/', express.static(__dirname + '/local'));
 

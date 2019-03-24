@@ -24,6 +24,29 @@ exports.storePDF = function(filename) {
     });
 }
 
+exports.getAllText = function() {
+  let db = getDB();
+
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM Sentences", function(err, allRows) {
+      if (err) {
+        reject("Error while fetching sentences: "+err);
+        return;
+      }
+      resolve(allRows);
+    });
+  });
+}
+
+//TODO: get actual sources.
+exports.getSources = function(question) {
+  return [
+    `We invited 24 participants (ages 20-43, M=29, 13 female) to participate in our VR scenarios and used a semistructured interview to explore the experience of exiting VR`,
+    `We recruited 12 participants (6 female, age M=23.5, SD=4.62).`,
+    `We recruited 16 participants from our organization (9 female, 7 male, age 28.8 ± 3.1 years), forming four groups.`
+  ];
+}
+
 function fileToSentences(filename) {
   return new Promise(function(resolve, reject) {
     let pdfParser = new PDFParser();
@@ -61,15 +84,6 @@ function fileToSentences(filename) {
       });
 
       resolve(extractedData);
-      
-      // fs.writeFile(__dirname + '/PDFs/test.json', JSON.stringify(pdfData), 
-      //   function(err, result) {
-      //     if(err) {
-      //       console.log('error', err);
-      //     } else {
-      //       console.log("JSON written");
-      //     }
-      //   });
     });
   
     pdfParser.loadPDF(__dirname + '/PDFs/' + filename);
@@ -77,6 +91,7 @@ function fileToSentences(filename) {
   });
 }
 
+// Should return promise here;
 function getDB() {
   if(db) return db;
 
@@ -107,6 +122,16 @@ function getDB() {
       );
     `;
     db.run(sql);
+
+    sql = `
+      CREATE TABLE IF NOT EXISTS Sources (
+        id INTEGER PRIMARY KEY, 
+        source_text TEXT
+      );
+    `;
+    db.run(sql, function(err) {
+      if(err) console.log(err);
+    });
   });
 
   return db;
