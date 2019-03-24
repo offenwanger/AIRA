@@ -2,13 +2,13 @@
 const express = require('express');
 const app = express();
 const formidable = require('formidable')
-const http = require('http');
 const database = require("./server/database.js");
 const recommender = require("./server/recommender.js");
 
 const port = 3333;
 
 app.use(require('morgan')('dev'));
+
 app.engine('html', require('ejs').renderFile);
 
 app.get('/', function (req, res) {

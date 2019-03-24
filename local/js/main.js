@@ -86,11 +86,18 @@ $(window).load(function () {
         lastPDFname = recommendation.row.filename;
       }
       let p = document.createElement("p");
+      p.setAttribute("class", "source-p");
+      p.setAttribute("filename", recommendation.row.filename);
+      p.setAttribute("startpage", recommendation.row.start_page);
       p.innerHTML = recommendation.text;
       recommendationList.append(p);
     });
   }, (err) =>{
     console.error("Could not get PDFs from Server: "+err);
+  });
+
+  $("#recommendation-list").on('click', '.source-p', function() {
+    showPDF("/pdf/"+this.getAttribute("filename"), parseInt(this.getAttribute("startpage")));
   });
 
   /**********************************
@@ -104,7 +111,7 @@ $(window).load(function () {
   __CANVAS = $('#pdf-canvas').get(0),
   __CANVAS_CTX = __CANVAS.getContext('2d');
 
-  function showPDF(pdf_url) {
+  function showPDF(pdf_url, page_num) {
       $("#pdf-loader").show();
 
     PDFJS.getDocument({ url: pdf_url }).then(function(pdf_doc) {
@@ -117,7 +124,7 @@ $(window).load(function () {
         $("#pdf-total-pages").text(__TOTAL_PAGES);
 
         // Show the first page
-        showPage(1);
+        showPage(page_num?page_num:1);
     }).catch(function(error) {
         // If error re-show the upload button
         $("#pdf-loader").hide();
