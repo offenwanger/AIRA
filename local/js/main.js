@@ -140,7 +140,7 @@ $(window).load(function () {
     __CURRENT_PAGE = page_no;
 
     // Disable Prev & Next buttons while page is being loaded
-    $("#pdf-next, #pdf-prev").attr('disabled', 'disabled');
+    $(".pdf-control").attr('disabled', 'disabled');
 
     // While page is being rendered hide the canvas and show a loading message
     $("#pdf-canvas").hide();
@@ -168,7 +168,7 @@ $(window).load(function () {
             __PAGE_RENDERING_IN_PROGRESS = 0;
 
             // Re-enable Prev & Next buttons
-            $("#pdf-next, #pdf-prev").removeAttr('disabled');
+            $(".pdf-control").removeAttr('disabled');
 
             // Show the canvas and hide the page loader
             $("#pdf-canvas").show();
