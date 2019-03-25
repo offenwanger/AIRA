@@ -115,7 +115,7 @@ $(window).load(function () {
   function showPDF(pdf_url, page_num) {
       $("#pdf-loader").show();
 
-    PDFJS.getDocument({ url: pdf_url }).then(function(pdf_doc) {
+      pdfjsLib.getDocument({ url: pdf_url }).then(function(pdf_doc) {
         __PDF_DOC = pdf_doc;
         __TOTAL_PAGES = __PDF_DOC.numPages;
         
@@ -187,7 +187,7 @@ $(window).load(function () {
             $("#text-layer").css({ left: canvas_offset.left + 'px', top: canvas_offset.top + 'px', height: __CANVAS.height + 'px', width: __CANVAS.width + 'px' });
 
             // Pass the data to the method for rendering of text over the pdf canvas.
-            PDFJS.renderTextLayer({
+            pdfjsLib.renderTextLayer({
                 textContent: textContent,
                 container: $("#text-layer").get(0),
                 viewport: viewport,
