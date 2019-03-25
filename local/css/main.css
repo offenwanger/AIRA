@@ -217,8 +217,11 @@ body {
 }
 
 #pdf-main-container {
-	width: 400px;
-	margin: 20px auto;
+	margin: 2px;
+}
+
+#pdf-canvas-container {
+	overflow: scroll;
 }
 
 #pdf-loader {

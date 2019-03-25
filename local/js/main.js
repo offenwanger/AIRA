@@ -104,12 +104,13 @@ $(window).load(function () {
    * PDF code
    */
 
-  var __PDF_DOC,
+  let __PDF_DOC,
   __CURRENT_PAGE,
   __TOTAL_PAGES,
   __PAGE_RENDERING_IN_PROGRESS = 0,
   __CANVAS = $('#pdf-canvas').get(0),
   __CANVAS_CTX = __CANVAS.getContext('2d');
+  let pdfScale = 1;
 
   function showPDF(pdf_url, page_num) {
       $("#pdf-loader").show();
@@ -150,11 +151,9 @@ $(window).load(function () {
 
     // Fetch the page
     __PDF_DOC.getPage(page_no).then(function(page) {
-        // As the canvas is of a fixed width we need to set the scale of the viewport accordingly
-        var scale_required = __CANVAS.width / page.getViewport(1).width;
 
         // Get viewport of the page at required scale
-        var viewport = page.getViewport(scale_required);
+        var viewport = page.getViewport(pdfScale);
 
         // Set canvas height
         __CANVAS.height = viewport.height;
@@ -233,6 +232,20 @@ $(window).load(function () {
       if(__CURRENT_PAGE != __TOTAL_PAGES)
           showPage(++__CURRENT_PAGE);
   });
+
+  $("#zoominbutton").on('click', function() {
+     pdfScale = pdfScale + 0.25;
+     showPage(__CURRENT_PAGE);
+  });
+
+  $("#zoomoutbutton").on('click', function() {
+     if (pdfScale <= 0.25) {
+        return;
+     }
+     pdfScale = pdfScale - 0.25;
+     showPage(__CURRENT_PAGE);
+  });
+
 
   function getPdfList(success, failure) {
     $.ajax({
