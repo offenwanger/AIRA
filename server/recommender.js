@@ -60,6 +60,17 @@ exports.getRecommendations = function(question, database) {
       console.log(words);
     }
 
+    rows = rows.sort((a,b) => {
+      if(a.pdf == b.pdf) {
+        if (a.line_number < b.line_number) return -1;
+        if (b.line_number < a.line_number) return 1;
+        return 0;
+      } else {
+        if (a.pdf < b.pdf) return -1;
+        if (b.pdf < a.pdf) return 1;
+      }
+    });
+
     let results = recommendTexts(words, rows.map(row => row.line_text), CONTEXT_RANGE);
     results.forEach((result) => {
       result.row = rows[result.i];      
@@ -171,9 +182,12 @@ function rankWordsByFrequencyInSubset(words, subset, texts) {
 
 /**
  * @param {*} words An array of string with the words. 
- * @param {*} texts An array of strings with the text items.
+ * @param {*} texts An array of strings with the text items. 
+ *  These must be sorted in order.
+ * @param {int} contextRange An int for how many surrounding sentences 
+ *  should be added to the current sentence.
  * @return A sorted array of results with the text, 
- *         the resulting measure, and the original array index.
+ *  the resulting measure, and the original array index.
  */
 function recommendTexts(words, texts, contextRange) {
   let model = new TfIdf();
@@ -199,6 +213,19 @@ function recommendTexts(words, texts, contextRange) {
 
   model.tfidfs(words, function(i, measure) {
     results[i] = {i, text:finalTexts[i], measure};
+  });
+
+  results.filter((result) => {
+    if(result.measure == 0) 
+    return result.measure > 0;
+  })
+
+  // There may be some bias in that longer sentences 
+  // will have a higher rating simply because it's got more
+  // keywords in it. Mildly bias towards shorter sentences.
+  results.forEach((result) => {
+    result.measure = result.measure / 
+        Math.sqrt(result.text.split(" ").length);
   });
 
   results.sort((a,b) => {

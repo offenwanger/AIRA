@@ -60,7 +60,7 @@ $(window).load(function () {
   });
   $("#all-pdfs-list").on('click', '.pdf-button', function(){
     $('#pdfs-popup').hide();
-    showPDF("/pdf/"+this.getAttribute("filename"));
+    showPDF(this.getAttribute("filename"));
   });
   
 
@@ -97,41 +97,67 @@ $(window).load(function () {
   });
 
   let lastClickedSource;
+
   $("#recommendation-list").on('click', '.source-p', function() {
-    showPDF("/pdf/"+this.getAttribute("filename"), parseInt(this.getAttribute("startpage")));
+    lastClickedSource = {
+      filename:this.getAttribute("filename"),
+      page:parseInt(this.getAttribute("startpage")),
+      text:this.innerHTML
+    }
+    showPDF(lastClickedSource.filename, lastClickedSource.page);
+    if(currentPdfFilename == lastClickedSource.filename) {
+      // PDF will not load and trigger this, so just call it here.
+      hilightLastClickedSource();
+    } 
     $('html, body').animate({ scrollTop: 0 }, 'fast');
+    
   });
 
   /**********************************
    * PDF codd
    */
+  let currentPdfFilename;
+  let waitingOnLoad = false;
   
-  function showPDF(pdf_url, page_num) {
+  function showPDF(filename, page_num) {
+    let pdf_url = "/pdf/"+filename;
+    currentPdfFilename = filename;
     $("#pdf-iframe").attr(
       'src', 
       "libs/pdfjs/web/viewer.html?file=" + pdf_url + "#page=" + (page_num?page_num:1));
   }
 
-  let seeking = false;
-  function onIframeLoad() {
-    seeking = false;
-    console.log("loaded");
-    let divs;
-    try {
-      divs = $("#pdf-iframe").contents().find("[data-page-number=1]").filter(".page").find(".textLayer").find("div");
-    } catch {}
-    if(divs.length == 0) {
-      if(!seeking) {
-        seeking = true;
-        setTimeout(onIframeLoad, 1000);
-      }
-    } else {
-      console.log(divs);
+  function hilightLastClickedSource() {
+    waitingOnLoad = false;
+    if(currentPdfFilename == lastClickedSource.filename) {   
+      let divs;
+      divs = $("#pdf-iframe").contents()
+        .find("[data-page-number="+lastClickedSource.page+"]")
+        .filter(".page")
+        .find(".textLayer")
+        .find("div");
+      if(divs.length == 0) {
+        //Prevent multiple wait loops
+        if(!waitingOnLoad) {
+          waitingOnLoad = true;
+          setTimeout(hilightLastClickedSource, 300);
+        }
+      } else {
+        // Remove whitespace as it behaves funny.
+        let text = lastClickedSource.text.replace(/\s/g,'');
+        divs.each((i, div) => {
+          if(text.includes(div.innerHTML.replace(/\s/g,'')) && div.innerHTML.replace(/\s/g,'').length > 1) {
+            $(div).css("background-color", "red");
+          }
+        });
+        // zooming redraws the text layer, so when zoom is clicked, redraw the highlighting.
+        $("#pdf-iframe").contents().find("#zoomIn").on("click", hilightLastClickedSource);
+        $("#pdf-iframe").contents().find("#zoomOut").on("click", hilightLastClickedSource);
+      }   
     }
-
   }
 
-  $("#pdf-iframe").load(onIframeLoad);
+  $("#pdf-iframe").load(hilightLastClickedSource);
 
   // Upon click this should should trigger click on the #file-to-upload file input element
   // This is better than showing the not-good-looking file input element
@@ -151,37 +177,11 @@ $(window).load(function () {
       const upload = new Upload(file);
 
       upload.doUpload((filename)=>{
-          showPDF("/pdf/"+filename);
+          showPDF(filename);
       }, (error)=>{
           alert(error.responseText);
       });
   });
-
-  // Previous page of the PDF
-  $("#pdf-prev").on('click', function() {
-      if(currentPage != 1)
-          showPage(--currentPage);
-  });
-
-  // Next page of the PDF
-  $("#pdf-next").on('click', function() {
-      if(currentPage != totalPages)
-          showPage(++currentPage);
-  });
-
-  $("#zoominbutton").on('click', function() {
-     pdfScale = pdfScale + 0.25;
-     showPage(currentPage);
-  });
-
-  $("#zoomoutbutton").on('click', function() {
-     if (pdfScale <= 0.25) {
-        return;
-     }
-     pdfScale = pdfScale - 0.25;
-     showPage(currentPage);
-  });
-
 
   function getPdfList(success, failure) {
     $.ajax({

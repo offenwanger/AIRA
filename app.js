@@ -57,6 +57,7 @@ app.post('/upload', function(req, res) {
         .then(()=>{
           // Answer the post request with the name of the uploaded file. 
           // This will tell the client how to request and display it.
+          console.log("Returning filename: "+file.name);
           res.end(file.name);
         }).catch((error)=>{
           console.log(error);
