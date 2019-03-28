@@ -96,107 +96,43 @@ $(window).load(function () {
     console.error("Could not get PDFs from Server: "+err);
   });
 
+  let lastClickedSource;
   $("#recommendation-list").on('click', '.source-p', function() {
     showPDF("/pdf/"+this.getAttribute("filename"), parseInt(this.getAttribute("startpage")));
+    $('html, body').animate({ scrollTop: 0 }, 'fast');
   });
 
   /**********************************
-   * PDF code
+   * PDF codd
    */
-
-  let __PDF_DOC,
-  __CURRENT_PAGE,
-  __TOTAL_PAGES,
-  __PAGE_RENDERING_IN_PROGRESS = 0,
-  __CANVAS = $('#pdf-canvas').get(0),
-  __CANVAS_CTX = __CANVAS.getContext('2d');
-  let pdfScale = 1;
-
+  
   function showPDF(pdf_url, page_num) {
-      $("#pdf-loader").show();
-
-      pdfjsLib.getDocument({ url: pdf_url }).then(function(pdf_doc) {
-        __PDF_DOC = pdf_doc;
-        __TOTAL_PAGES = __PDF_DOC.numPages;
-        
-        // Hide the pdf loader and show pdf container in HTML
-        $("#pdf-loader").hide();
-        $("#pdf-contents").show();
-        $("#pdf-total-pages").text(__TOTAL_PAGES);
-
-        // Show the first page
-        showPage(page_num?page_num:1);
-    }).catch(function(error) {
-        // If error re-show the upload button
-        $("#pdf-loader").hide();
-        $("#upload-button").show();
-        
-        alert(error.message);
-    });
+    $("#pdf-iframe").attr(
+      'src', 
+      "libs/pdfjs/web/viewer.html?file=" + pdf_url + "#page=" + (page_num?page_num:1));
   }
 
-  function showPage(page_no) {
-    __PAGE_RENDERING_IN_PROGRESS = 1;
-    __CURRENT_PAGE = page_no;
+  let seeking = false;
+  function onIframeLoad() {
+    seeking = false;
+    console.log("loaded");
+    let divs;
+    try {
+      divs = $("#pdf-iframe").contents().find("[data-page-number=1]").filter(".page").find(".textLayer").find("div");
+    } catch {}
+    if(divs.length == 0) {
+      if(!seeking) {
+        seeking = true;
+        setTimeout(onIframeLoad, 1000);
+      }
+    } else {
+      console.log(divs);
+    }
 
-    // Disable Prev & Next buttons while page is being loaded
-    $(".pdf-control").attr('disabled', 'disabled');
-
-    // While page is being rendered hide the canvas and show a loading message
-    $("#pdf-canvas").hide();
-    $("#page-loader").show();
-
-    // Update current page in HTML
-    $("#pdf-current-page").text(page_no);
-
-    // Fetch the page
-    __PDF_DOC.getPage(page_no).then(function(page) {
-
-        // Get viewport of the page at required scale
-        var viewport = page.getViewport(pdfScale);
-
-        // Set canvas height
-        __CANVAS.height = viewport.height;
-
-        var renderContext = {
-            canvasContext: __CANVAS_CTX,
-            viewport: viewport
-        };
-        
-        // Render the page contents in the canvas
-        page.render(renderContext).then(function() {
-            __PAGE_RENDERING_IN_PROGRESS = 0;
-
-            // Re-enable Prev & Next buttons
-            $(".pdf-control").removeAttr('disabled');
-
-            // Show the canvas and hide the page loader
-            $("#pdf-canvas").show();
-            $("#page-loader").hide();
-
-            // Return the text contents of the page after the pdf has been rendered in the canvas
-            return page.getTextContent();
-        }).then(function(textContent) {
-            // Get canvas offset
-            var canvas_offset = $("#pdf-canvas").offset();
-
-            // Clear HTML for text layer
-            $("#text-layer").html('');
-
-            // Assign the CSS created to the text-layer element
-            $("#text-layer").css({ left: canvas_offset.left + 'px', top: canvas_offset.top + 'px', height: __CANVAS.height + 'px', width: __CANVAS.width + 'px' });
-
-            // Pass the data to the method for rendering of text over the pdf canvas.
-            pdfjsLib.renderTextLayer({
-                textContent: textContent,
-                container: $("#text-layer").get(0),
-                viewport: viewport,
-                textDivs: []
-            });
-        });
-    });
   }
-      
+
+  $("#pdf-iframe").load(onIframeLoad);
+
   // Upon click this should should trigger click on the #file-to-upload file input element
   // This is better than showing the not-good-looking file input element
   $("#upload-button").on('click', function() {
@@ -223,19 +159,19 @@ $(window).load(function () {
 
   // Previous page of the PDF
   $("#pdf-prev").on('click', function() {
-      if(__CURRENT_PAGE != 1)
-          showPage(--__CURRENT_PAGE);
+      if(currentPage != 1)
+          showPage(--currentPage);
   });
 
   // Next page of the PDF
   $("#pdf-next").on('click', function() {
-      if(__CURRENT_PAGE != __TOTAL_PAGES)
-          showPage(++__CURRENT_PAGE);
+      if(currentPage != totalPages)
+          showPage(++currentPage);
   });
 
   $("#zoominbutton").on('click', function() {
      pdfScale = pdfScale + 0.25;
-     showPage(__CURRENT_PAGE);
+     showPage(currentPage);
   });
 
   $("#zoomoutbutton").on('click', function() {
@@ -243,7 +179,7 @@ $(window).load(function () {
         return;
      }
      pdfScale = pdfScale - 0.25;
-     showPage(__CURRENT_PAGE);
+     showPage(currentPage);
   });
 
 
