@@ -1,22 +1,13 @@
-var Upload = function (file) {
-  this.file = file;
-};
-
-Upload.prototype.getType = function() {
-  return this.file.type;
-};
-Upload.prototype.getSize = function() {
-  return this.file.size;
-};
-Upload.prototype.getName = function() {
-  return this.file.name;
+var Upload = function (files) {
+  this.files = files;
 };
 Upload.prototype.doUpload = function (success, failure) {
   var that = this;
   var formData = new FormData();
 
-  // add assoc key values, this will be posts values
-  formData.append("file", this.file, this.getName());
+  for (var i = 0; i < this.files.length; i++) {
+    formData.append("uploadedFiles", this.files[i]);
+  }
   formData.append("upload_file", true);
 
   $.ajax({
@@ -40,7 +31,7 @@ Upload.prototype.doUpload = function (success, failure) {
     cache: false,
     contentType: false,
     processData: false,
-    timeout: 60000
+    timeout: 600000
   });
 };
 

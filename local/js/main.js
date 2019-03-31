@@ -29,25 +29,28 @@ $(window).load(function () {
   /*********************************
    * Popup Window Code
    */
-  let pdfs = [];
-  getPdfList((data)=>{
-    pdfs = data.sort(function(a, b) {
-      var textA = a.filename.toUpperCase();
-      var textB = b.filename.toUpperCase();
-      return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-    });
-    let pdfList = $("#all-pdfs-list");
-    pdfs.forEach((pdf) => {
-      let link = document.createElement("a");
-      link.setAttribute("pdf-id", pdf.id);
-      link.setAttribute("filename", pdf.filename);
-      link.setAttribute("class", "pdf-button");
-      link.innerHTML = pdf.filename;
-      pdfList.append(link);
-    });
-  }, (err) =>{
-    console.error("Could not get PDFs from Server: "+err);
-  });
+  function populatePdfList() {
+    getPdfList((pdfs)=>{
+      pdfs = pdfs.sort(function(a, b) {
+        var textA = a.filename.toUpperCase();
+        var textB = b.filename.toUpperCase();
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+      });
+      let pdfList = $("#all-pdfs-list");
+      pdfList.empty();
+      pdfs.forEach((pdf) => {
+        let link = document.createElement("a");
+        link.setAttribute("pdf-id", pdf.id);
+        link.setAttribute("filename", pdf.filename);
+        link.setAttribute("class", "pdf-button");
+        link.innerHTML = pdf.filename;
+        pdfList.append(link);
+      });
+    }, (err) =>{
+      console.error("Could not get PDFs from Server: "+err);
+    });  
+  }
+  populatePdfList();
 
   $("#see-all-pdfs").click(function(){
     $('#pdfs-popup').show();
@@ -96,7 +99,7 @@ $(window).load(function () {
     console.error("Could not get PDFs from Server: "+err);
   });
 
-  let lastClickedSource;
+  let lastClickedSource = {};
 
   $("#recommendation-list").on('click', '.source-p', function() {
     lastClickedSource = {
@@ -166,18 +169,24 @@ $(window).load(function () {
   });
 
   $("#file-to-upload").on('change', function() {
-      if(['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
-          alert('Error : Not a PDF');
-          return;
+      for(let i = 0; i < $("#file-to-upload").get(0).files.length; i++) {
+        if(['application/pdf'].indexOf($("#file-to-upload").get(0).files[i].type) == -1) {
+            alert('Error : Not a PDF');
+            console.log("Following file is not a PDF:");
+            console.log($("#file-to-upload").get(0).files[i]);
+            return;
+        }
       }
 
       $("#pdf-contents").hide();
 
-      const file = $("#file-to-upload").get(0).files[0];
-      const upload = new Upload(file);
+      const files = $("#file-to-upload").get(0).files;
+      const upload = new Upload(files);
 
-      upload.doUpload((filename)=>{
-          showPDF(filename);
+      upload.doUpload((results)=>{
+          populatePdfList();
+          console.log("Upload results:")
+          console.log(results);
       }, (error)=>{
           alert(error.responseText);
       });
@@ -188,7 +197,7 @@ $(window).load(function () {
       type: "GET",
       url: "pdflist",
       success: function (data) {
-        success(JSON.parse(data));
+        success(data);
       },
       error: function (error) {
         failure(error);
@@ -207,7 +216,7 @@ $(window).load(function () {
       // The number of recommendations to get.
       url: "recommendations?num=100",
       success: function (data) {
-        success(JSON.parse(data));
+        success(data);
       },
       error: function (error) {
         failure(error);

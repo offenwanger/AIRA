@@ -25,7 +25,7 @@
 <body>
 <!-- non visible component -->
 <form id="file-to-upload-form" method='post' action='upload' enctype="multipart/form-data">
-	<input type="file" id="file-to-upload" accept="application/pdf" />
+	<input type="file" multiple id="file-to-upload" accept="application/pdf" />
 	<input id="file-to-upload-submit" type='submit'>
 </form>
 
@@ -110,7 +110,7 @@
 			<iframe
 					id="pdf-iframe"
 					width="100%"
-					height="800px"
+					height="100%"
 					style="border: none;"></iframe>
 		</div>
 	</div>

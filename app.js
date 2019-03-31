@@ -1,5 +1,6 @@
 'use strict';
 const express = require('express');
+const fileUpload = require('express-fileupload');
 const app = express();
 const formidable = require('formidable')
 const database = require("./server/database.js");
@@ -7,7 +8,10 @@ const recommender = require("./server/recommender.js");
 
 const port = 3333;
 
+console.log("************* Starting the AIRA server *************")
+
 app.use(require('morgan')('dev'));
+app.use(fileUpload());
 
 app.engine('html', require('ejs').renderFile);
 
@@ -17,7 +21,7 @@ app.get('/', function (req, res) {
 
 app.get('/pdflist', function (req, res) {
   database.getAllPdfs().then((pdfs)=>{
-    res.end(JSON.stringify(pdfs));
+    res.json(pdfs);
   }).catch((error) => {
     console.log(error);
     res.status(500).send('Failed to get PDFs: '+error);
@@ -37,7 +41,7 @@ app.get('/recommendations', function(req, res){
     } else {
       recommendations = recommendations.splice(0, 10)
     }
-    res.end(JSON.stringify(recommendations));
+    res.json(recommendations);
   });
 });
 
@@ -46,24 +50,40 @@ app.use('/', express.static(__dirname + '/local'));
 app.use('/pdf', express.static(__dirname + '/server/PDFs'));
 
 app.post('/upload', function(req, res) {
-  new formidable.IncomingForm().parse(req)
-    .on('fileBegin', (name, file) => {
-      // This directly stores the file which is bad, but does the trick for now.
-      file.path = __dirname + '/server/PDFs/' + file.name;
-    })
-    .on('file', (name, file) => {
-      console.log('File Uploaded');
-      database.storePDF(file.name)
-        .then(()=>{
-          // Answer the post request with the name of the uploaded file. 
-          // This will tell the client how to request and display it.
-          console.log("Returning filename: "+file.name);
-          res.end(file.name);
-        }).catch((error)=>{
-          console.log(error);
-          res.status(500).send('Upload Failed: '+error);
+  let fileNames = Object.keys(req.files['uploadedFiles']);
+  if (fileNames.length == 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  console.log(req.files['uploadedFiles']);
+
+  let promises = [];
+  for(let i = 0; i < req.files['uploadedFiles'].length; i++) {
+    let file = req.files['uploadedFiles'][i];
+    promises[i] = new Promise(function(resolve, reject) {
+      let path = __dirname + '/server/PDFs/' + file.name;
+
+      file.mv(path, function(err) {
+        if (err) {
+          console.log("Error storing file "+file.name);
+          resolve({name:file.name, uploaded:false, error:err});
+          return;
+        }
+        
+        database.storePDF(file.name).then(()=>{
+          resolve({name:file.name, uploaded:true});
+          console.log(file.name+' stored');
+        }).catch((err)=>{
+          console.log(file.name+' failed to store: '+err);
+          resolve({name:file.name, uploaded:false, error:err});
         });
-    })
+      });
+    });
+  }
+
+  Promise.all(promises).then((results) => {
+    res.send(results);
+  });
 });
 
 app.listen(port);

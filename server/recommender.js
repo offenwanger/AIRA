@@ -129,7 +129,7 @@ function getSimilairWords(words) {
       promise.then(axios.get('https://api.datamuse.com/words?ml='+encodeURI(word)))
         .then(response => {
           console.log("Additional word data:");
-          console.log(response.data);
+          console.log(response);
         })
         .catch(error => {
           console.log("Error when getting similair words for "+word+", recommendations may be incomplete.")
