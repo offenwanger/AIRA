@@ -4,18 +4,35 @@ $(window).load(function () {
   /*********************************
    * Recommendation Code
    */
-  function populateRecommendations() {
-    getRecommendations((results) =>{
+  let allRecommendations;
+  function populateRecommendations(fetch = true) {
+    function populate(results) {
+      allRecommendations = results;
+      recommendations = allRecommendations;
+
       let recommendationList = $("#recommendation-list");
       recommendationList.empty();
-      // TODO: paginate the results.
-      let recommendations = results.splice(0, 10);
+      
+      if(document.getElementById('filterHasSource').checked) {
+        let filledIds = [];
+        sources.forEach(source=> {
+          filledIds.push(source.pdf);
+        });
+
+        recommendations = recommendations.filter(
+          r => !filledIds.includes(r.row.pdf));
+      }
+
       recommendations = recommendations.sort(function(a, b) {
         var textA = a.row.filename.toUpperCase();
         var textB = b.row.filename.toUpperCase();
-        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+        if(textA == textB) return a.measure > b.measure ? -1 : 1;
+        return (textA < textB) ? -1 : 1;
       });
+
       let lastPDFname;
+      let numRecommendationsForPdf = 0;
+      let MAX_RECOMMENDATIONS_PER_PDF = 3;
       recommendations.forEach((recommendation) => {
         if(lastPDFname != recommendation.row.filename) {
           let label = document.createElement("div");
@@ -23,18 +40,28 @@ $(window).load(function () {
           label.innerHTML = recommendation.row.filename;
           recommendationList.append(label);
           lastPDFname = recommendation.row.filename;
+          numRecommendationsForPdf = 0;
         }
-        let p = document.createElement("p");
-        p.setAttribute("class", "recommendation-p");
-        p.setAttribute("filename", recommendation.row.filename);
-        p.setAttribute("pdf-id", recommendation.row.pdf);
-        p.setAttribute("startpage", recommendation.row.start_page);
-        p.innerHTML = recommendation.text;
-        recommendationList.append(p);
+        if(numRecommendationsForPdf < MAX_RECOMMENDATIONS_PER_PDF) {
+          let p = document.createElement("p");
+          p.setAttribute("class", "recommendation-p");
+          p.setAttribute("filename", recommendation.row.filename);
+          p.setAttribute("pdf-id", recommendation.row.pdf);
+          p.setAttribute("startpage", recommendation.row.start_page);
+          p.innerHTML = recommendation.text;
+          recommendationList.append(p);
+          numRecommendationsForPdf ++;
+        }
       });
-    }, (err) =>{
-      console.error("Could not get PDFs from Server: "+err);
-    });
+    };
+
+    if(fetch || !recommendations || !recommendations.length) {
+      getRecommendations(populate, (err) =>{
+        console.error("Could not get PDFs from Server: "+err);
+      });
+    } else {
+      populate(allRecommendations);
+    }
   }
   populateRecommendations();
 
@@ -56,6 +83,10 @@ $(window).load(function () {
     } 
     $('html, body').animate({ scrollTop: 0 }, 'fast');
     
+  });
+
+  $('#filterHasSource').change(function() {
+    populateRecommendations(false);
   });
 
   /**********************************
@@ -256,6 +287,7 @@ $(window).load(function () {
     $("#tag-source").css("display", "none");
   });
 
+  let sources;
   function populateSources() {
     getSources((results) =>{
       console.log(results);
@@ -281,8 +313,42 @@ $(window).load(function () {
         p.setAttribute("pdf-id", source.pdf);
         p.setAttribute("startpage", source.start_page);
         p.innerHTML = source.source_text;
+
+        $(p).append("<br>");
+
+        let input = document.createElement("input")
+        input.setAttribute("type", "text");
+        input.setAttribute("value", source.answer || "");
+        input.setAttribute("source-id", source.id);    
+        $(input).change(function() {
+          updateAnswer($(this).attr("source-id"), $(this).val(), ()=>{
+            console.log("Answer updated successfully");
+          });
+        })
+        $(p).append(input);
+
+        let button = document.createElement("button")
+        button.innerHTML = "<i class='material-icons'>delete</i>";
+        button.setAttribute("style", "background-color:#FFAAAA");
+        button.setAttribute("source-id", source.id);
+        $(button).click(function(){
+          $(this).parent().remove();
+          deleteSource($(this).attr("source-id"), ()=>{
+            populateSources();
+            populateRecommendations();
+          });
+        })
+        $(p).append(button);
+
         sourceList.append(p);
       });
+
+      // If these loaded after the recommendations and we're set to filter,
+      // then rerun in order to do the filter.
+      if(allRecommendations && allRecommendations.length > 0 && 
+        document.getElementById('filterHasSource').checked){
+          populateRecommendations(false);
+      }
     }, (err) =>{
       console.error("Could not get Sources from Server: "+err);
     });
@@ -407,6 +473,41 @@ $(window).load(function () {
       contentType: false,
       processData: false,
       timeout: 60000
+    });
+  }
+
+  function updateAnswer(sourceId, text, success) {
+    $.ajax({
+      type: "GET",
+      // The number of recommendations to get.
+      url: "/updateanswer",
+      data: { 
+        text: text, 
+        source_id: sourceId
+      },
+      success: function (data) {
+        success(data);
+      },
+      error: function (error) {
+        console.error(error);
+      }
+    });
+  }
+
+  function deleteSource(sourceId, success) {
+    $.ajax({
+      type: "GET",
+      // The number of recommendations to get.
+      url: "/deletesource",
+      success: function (data) {
+        success(data);
+      },
+      error: function (error) {
+        console.error(error);
+      },
+      data: { 
+        source_id: sourceId
+      }
     });
   }
 

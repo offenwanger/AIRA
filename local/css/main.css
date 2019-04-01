@@ -295,6 +295,8 @@ body {
 	height: auto;
 	max-width: 551px;
 	min-height: 100px;
+	max-height: 80%;
+	overflow-y: scroll;
 	vertical-align: middle;
 	width: 60%;
 	position: relative;

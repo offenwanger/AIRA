@@ -30,11 +30,6 @@ app.get('/pdflist', function (req, res) {
 
 app.get('/recommendations', function(req, res){
   recommender.getRecommendations(database).then((recommendations)=>{
-    if(req.query.num) {
-      recommendations = recommendations.splice(0, req.query.num);
-    } else {
-      recommendations = recommendations.splice(0, 10)
-    }
     res.json(recommendations);
   });
 });
@@ -51,6 +46,27 @@ app.get('/insertsource', function(req, res) {
   let pdf_id = req.query.pdf_id;
   database.insertSource(text, page_num, pdf_id)
     .then((id) => res.send({sourceId: id}))
+    .catch((err) => {
+      console.log("Database error: "+err);
+      res.status(400).send("Database error: "+err);
+    });
+});
+
+app.get('/updateanswer', function(req, res) {
+  let sourceId = req.query.source_id;
+  let text = req.query.text;
+  database.updateAnswer(sourceId, text)
+    .then(() => res.send())
+    .catch((err) => {
+      console.log("Database error: "+err);
+      res.status(400).send("Database error: "+err);
+    });
+});
+
+app.get('/deletesource', function(req, res) {
+  let sourceId = req.query.source_id;
+  database.deleteSource(sourceId)
+    .then(() => res.send())
     .catch((err) => {
       console.log("Database error: "+err);
       res.status(400).send("Database error: "+err);

@@ -30,8 +30,8 @@ exports.storePDF = function(filename) {
 exports.getAllText = function() {
   return getDB().then((db) => new Promise((resolve, reject) => {
     db.all(`
-      SELECT * FROM Sentences 
-      INNER JOIN Pdfs ON Sentences.pdf = Pdfs.id;
+      SELECT s.*, p.filename FROM Sentences AS s
+      INNER JOIN Pdfs AS p ON s.pdf = p.id;
     `, function(err, allRows) {
       if (err) {
         reject("Error while fetching sentences: "+err);
@@ -56,8 +56,9 @@ exports.getAllPdfs = function() {
 
 exports.getSources = function() {
   return getDB().then((db) => new Promise((resolve, reject) => {
-    db.all(`SELECT * FROM Sources 
-            INNER JOIN Pdfs ON Sources.pdf = Pdfs.id;`, function(err, allRows) {
+    db.all(`SELECT s.*, p.filename, a.answer FROM Sources AS s
+            INNER JOIN Pdfs AS p ON s.pdf = p.id
+            LEFT JOIN Answers AS a ON a.source = s.id`, function(err, allRows) {
       if (err) {
         reject("Error while fetching sources: "+err);
         return;
@@ -77,6 +78,33 @@ exports.insertSource = function(source_text, source_page, source_pdf) {
       }
       
       resolve(this.lastID);
+    });
+  }));
+}
+
+exports.updateAnswer = function(source_id, answer_text) {
+  //Note: This will replace the entire answer row.
+  return getDB().then((db) => new Promise((resolve, reject) => {
+    let sql = `REPLACE INTO Answers (source, answer) VALUES (?, ?);`;
+    db.run(sql, [source_id, answer_text], function(err) {
+      if(err) {
+        reject("Database error while updating answer with: "+answer_text+": "+err);
+        return;
+      }
+      resolve();
+    });
+  }));
+}
+
+exports.deleteSource = function(source_id) {
+  return getDB().then((db) => new Promise((resolve, reject) => {
+    let sql = `DELETE FROM Sources WHERE id = ?;`;
+    db.run(sql, [source_id], function(err) {
+      if(err) {
+        reject("Database error while deleting source: "+answer_text+": "+err);
+        return;
+      }
+      resolve();
     });
   }));
 }
@@ -160,7 +188,7 @@ function getDB() {
             start_page INTEGER,
             end_page INTEGER,
             line_text TEXT,
-            FOREIGN KEY(pdf) REFERENCES Pdfs(id)
+            FOREIGN KEY(pdf) REFERENCES Pdfs(id) ON DELETE CASCADE
           );
         `, function(err) {
             if(err) console.error("Error while creating table Sentences: "+err);
@@ -173,10 +201,22 @@ function getDB() {
             source_text TEXT,
             start_page INTEGER,
             pdf INTEGER,
-            FOREIGN KEY(pdf) REFERENCES Pdfs(id)
+            FOREIGN KEY(pdf) REFERENCES Pdfs(id) ON DELETE CASCADE
           );
         `, function(err) {
-            if(err) console.error("Error while creating table Sentences: "+err);
+            if(err) console.error("Error while creating table Sources: "+err);
+            res();
+          });
+      })).then(new Promise((res) => {
+        db.run(`
+          CREATE TABLE IF NOT EXISTS Answers (
+            id INTEGER PRIMARY KEY, 
+            answer TEXT,
+            source INTEGER UNIQUE,
+            FOREIGN KEY(source) REFERENCES Sources(id) ON DELETE CASCADE
+          );
+        `, function(err) {
+            if(err) console.error("Error while creating table Answers: "+err);
             res();
           });
       })).then(()=>{
