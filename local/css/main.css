@@ -1,6 +1,6 @@
 
 /* ------------------------------------------------
-			My CSS
+			Misc CSS
 ---------------------------------------------------*/
 html {
 	height: 100%
@@ -220,6 +220,14 @@ body {
 #pdf-main-container {
 	margin: 2px;
 	height: 100%;
+	position: relative;
+}
+
+#tag-source {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	display: none;
 }
 
 #pdf-canvas-container {

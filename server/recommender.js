@@ -24,23 +24,24 @@ const CONTEXT_RANGE = 1;
  * 
  * returns: Promise that resolves with the recommendations.
  */
-exports.getRecommendations = function(question, database) {
-  let sources = database.getSources(question);
-
-  // Split the sources into words
-  let words = tokenizer.tokenize(sources.join(" "));
-  // Eliminate duplicates.
-  words = [...new Set(words)];
-  words = words.filter((word) => checkWords.check(word));
-
-  if(LOG_LEVEL == VERBOSE) {
-    console.log("Words from source:");
-    console.log(words);
-  }
-
+exports.getRecommendations = function(database) {
+  let sources;
   let rows;
-
-  return database.getAllText().then(r => {
+  return database.getSources().then(s=>{
+    sources = s.map((source) => source.source_text)
+  })
+  .then(()=>database.getAllText())
+  .then(r => {
+    // Split the sources into words
+    let words = tokenizer.tokenize(sources.join(" "));
+    // Eliminate duplicates.
+    words = [...new Set(words)];
+    words = words.filter((word) => checkWords.check(word));
+  
+    if(LOG_LEVEL == VERBOSE) {
+      console.log("Words from source:");
+      console.log(words);
+    }
     rows = r;
     // Get the top KEYWORD_COUNT words for frequency
     let frequentWords = rankWordsByFrequencyInSubset(

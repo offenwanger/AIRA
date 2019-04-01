@@ -63,104 +63,113 @@ $(window).load(function () {
   });
   $("#all-pdfs-list").on('click', '.pdf-button', function(){
     $('#pdfs-popup').hide();
-    showPDF(this.getAttribute("filename"));
+    showPDF(
+      this.getAttribute("filename"), 
+      this.getAttribute("pdf-id"));
   });
   
 
   /*********************************
    * Recommendation Code
    */
-  getRecommendations((results) =>{
-    let recommendationList = $("#recommendation-list");
-    // TODO: paginate the results.
-    let recommendations = results.splice(0, 10);
-    recommendations = recommendations.sort(function(a, b) {
-      var textA = a.row.filename.toUpperCase();
-      var textB = b.row.filename.toUpperCase();
-      return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+  function populateRecommendations() {
+    getRecommendations((results) =>{
+      let recommendationList = $("#recommendation-list");
+      recommendationList.empty();
+      // TODO: paginate the results.
+      let recommendations = results.splice(0, 10);
+      recommendations = recommendations.sort(function(a, b) {
+        var textA = a.row.filename.toUpperCase();
+        var textB = b.row.filename.toUpperCase();
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+      });
+      let lastPDFname;
+      recommendations.forEach((recommendation) => {
+        if(lastPDFname != recommendation.row.filename) {
+          let label = document.createElement("div");
+          label.setAttribute("class", "label");
+          label.innerHTML = recommendation.row.filename;
+          recommendationList.append(label);
+          lastPDFname = recommendation.row.filename;
+        }
+        let p = document.createElement("p");
+        p.setAttribute("class", "source-p");
+        p.setAttribute("filename", recommendation.row.filename);
+        p.setAttribute("pdf-id", recommendation.row.pdf);
+        p.setAttribute("startpage", recommendation.row.start_page);
+        p.innerHTML = recommendation.text;
+        recommendationList.append(p);
+      });
+    }, (err) =>{
+      console.error("Could not get PDFs from Server: "+err);
     });
-    let lastPDFname;
-    recommendations.forEach((recommendation) => {
-      if(lastPDFname != recommendation.row.filename) {
-        let label = document.createElement("div");
-        label.setAttribute("class", "label");
-        label.innerHTML = recommendation.row.filename;
-        recommendationList.append(label);
-        lastPDFname = recommendation.row.filename;
-      }
-      let p = document.createElement("p");
-      p.setAttribute("class", "source-p");
-      p.setAttribute("filename", recommendation.row.filename);
-      p.setAttribute("startpage", recommendation.row.start_page);
-      p.innerHTML = recommendation.text;
-      recommendationList.append(p);
-    });
-  }, (err) =>{
-    console.error("Could not get PDFs from Server: "+err);
-  });
+  }
+  populateRecommendations();
 
   let lastClickedSource = {};
 
   $("#recommendation-list").on('click', '.source-p', function() {
     lastClickedSource = {
       filename:this.getAttribute("filename"),
+      pdfId:this.getAttribute("pdf-id"),
       page:parseInt(this.getAttribute("startpage")),
       text:this.innerHTML
     }
-    showPDF(lastClickedSource.filename, lastClickedSource.page);
+    showPDF(
+      lastClickedSource.filename, 
+      lastClickedSource.pdfId, 
+      lastClickedSource.page);
     if(currentPdfFilename == lastClickedSource.filename) {
       // PDF will not load and trigger this, so just call it here.
-      hilightLastClickedSource();
+      highlightLastClickedSource();
     } 
     $('html, body').animate({ scrollTop: 0 }, 'fast');
     
   });
 
   /**********************************
-   * PDF codd
+   * PDF code
    */
   let currentPdfFilename;
+  let currentPdfId;
   let waitingOnLoad = false;
   
-  function showPDF(filename, page_num) {
+  function showPDF(filename, id, page_num) {
     let pdf_url = "/pdf/"+filename;
     currentPdfFilename = filename;
+    currentPdfId = id;
     $("#pdf-iframe").attr(
       'src', 
       "libs/pdfjs/web/viewer.html?file=" + pdf_url + "#page=" + (page_num?page_num:1));
   }
 
-  function hilightLastClickedSource() {
+  function highlightLastClickedSource() {
     waitingOnLoad = false;
-    if(currentPdfFilename == lastClickedSource.filename) {   
-      let divs;
-      divs = $("#pdf-iframe").contents()
-        .find("[data-page-number="+lastClickedSource.page+"]")
-        .filter(".page")
-        .find(".textLayer")
-        .find("div");
-      if(divs.length == 0) {
+    if(currentPdfFilename == lastClickedSource.filename) {  
+      let divs = getDivsForText(lastClickedSource.text); 
+      if(divs == null) {
         //Prevent multiple wait loops
         if(!waitingOnLoad) {
           waitingOnLoad = true;
-          setTimeout(hilightLastClickedSource, 300);
+          setTimeout(highlightLastClickedSource, 300);
         }
       } else {
-        // Remove whitespace as it behaves funny.
-        let text = lastClickedSource.text.replace(/\s/g,'');
-        divs.each((i, div) => {
-          if(text.includes(div.innerHTML.replace(/\s/g,'')) && div.innerHTML.replace(/\s/g,'').length > 1) {
-            $(div).css("background-color", "red");
-          }
+        if(divs.length == 0) {
+          console.error("Highlighting error for: "+lastClickedSource.text);
+        }
+        // TODO: Fix the issue where it highlights the entire line regardless of where the 
+        // text starts or ends
+        divs.forEach(div => {
+          $(div).css("background-color", "red");
         });
         // zooming redraws the text layer, so when zoom is clicked, redraw the highlighting.
-        $("#pdf-iframe").contents().find("#zoomIn").on("click", hilightLastClickedSource);
-        $("#pdf-iframe").contents().find("#zoomOut").on("click", hilightLastClickedSource);
+        $("#pdf-iframe").contents().find("#zoomIn").on("click", highlightLastClickedSource);
+        $("#pdf-iframe").contents().find("#zoomOut").on("click", highlightLastClickedSource);
       }   
     }
   }
 
-  $("#pdf-iframe").load(hilightLastClickedSource);
+  $("#pdf-iframe").load(highlightLastClickedSource);
 
   // Upon click this should should trigger click on the #file-to-upload file input element
   // This is better than showing the not-good-looking file input element
@@ -214,7 +223,169 @@ $(window).load(function () {
     $.ajax({
       type: "GET",
       // The number of recommendations to get.
-      url: "recommendations?num=100",
+      url: "/recommendations?num=100",
+      success: function (data) {
+        success(data);
+      },
+      error: function (error) {
+        failure(error);
+      },
+      async: true,
+      cache: false,
+      contentType: false,
+      processData: false,
+      timeout: 60000
+    });
+  }
+
+
+  /**********************************
+   * Tagging Source Code
+   */
+  function getIframeSelectionText(iframe) {
+    let win = iframe.contentWindow;
+    let doc = iframe.contentDocument || win.document;
+  
+    if (win.getSelection) {
+      return win.getSelection().toString();
+    } else if (doc.selection && doc.selection.createRange) {
+      return doc.selection.createRange().text;
+    }
+  }
+  
+  let lastSelectedText = null;
+  $('#pdf-iframe').load(function(){
+    let iframe = $('#pdf-iframe').contents();
+    iframe.find("#viewerContainer").mouseup(function(event){
+      let text = getIframeSelectionText(document.getElementById("pdf-iframe"));
+  
+      if(text) {
+        lastSelectedText = text;
+        $("#tag-source").css("display", "block");
+        $("#tag-source").css("top", event.pageY);
+        $("#tag-source").css("left", event.pageX);
+      } else {
+        $("#tag-source").css("display", "none");
+      }
+    });
+  });
+
+  $('#tag-source').click(function(){
+    if(lastSelectedText) {
+      let text = lastSelectedText;
+      let pdf = currentPdfId;
+      let page = getPageForText(lastSelectedText);
+      uploadSource(text, page, pdf).then(()=>{
+        populateSources();
+        populateRecommendations();
+      }).catch((err) => {
+        console.error(err);
+      });
+    } else {
+      console.error("shouldn't be able to get here...")
+      console.log(text);
+    }
+    $("#tag-source").css("display", "none");
+  });
+
+  function populateSources() {
+    getSources((results) =>{
+      console.log(results);
+    }, (err) =>{
+      console.error("Could not get Sources from Server: "+err);
+    });
+  }
+  populateSources();
+
+  function getDivsForText(text) {
+    let divs;
+    divs = $("#pdf-iframe").contents()
+      .find(".textLayer")
+      .find("div");
+
+    if(divs.length == 0) {
+      return null;
+    }
+
+    // Remove whitespace as it behaves funny.
+    let textwows = text.replace(/\s/g,'');
+    let potentialDivs = [];
+    divs.each((i, div) => {
+      let sentenceSplit = div.innerHTML.match(/([^\.!\?]+[\.!\?]+)|([^\.!\?]+$)/g);
+      let push = false;
+      if(sentenceSplit) {
+        sentenceSplit.forEach(sentence => {
+          if(sentence.replace(/\s/g,'').length > 0 && 
+              textwows.includes(sentence.replace(/\s/g,''))) {
+            console.log("found: "+sentence);
+            push = true;
+          }
+        });
+        if(push) potentialDivs.push(div);
+      }
+    });
+
+    let sets = [];
+    let currentSet = [];
+    while(potentialDivs.length > 0) {
+      let div = potentialDivs.shift();
+      if($(currentSet[currentSet.length-1]).is($(div.previousSibling))) {
+        currentSet.push(div);
+      } else {
+        sets.push(currentSet);
+        currentSet = [div];
+      }
+    }
+    sets.push(currentSet);
+
+    //TODO: Take the set that has the closest character count.
+    let finalSet = [];
+    sets.forEach((set) =>{
+      if(set.length > finalSet.length) {
+        finalSet = set;
+      }  
+    });
+
+    return finalSet;
+  }
+
+  function getPageForText(text){
+    let divs = getDivsForText(text);
+    if(!divs) return null;
+    let num = $(divs[0]).parents(".page").attr("data-page-number");
+    if(!num) return null;
+    num = parseInt(num);
+    if(isNaN(num))
+    return null;
+    return num;
+  }
+
+  function uploadSource(sourceText, sourcePage, sourcePdfId) {
+    return new Promise((resolve, reject) =>{
+      $.ajax({
+        url: "/insertsource",
+        type: "get", //send it through get method
+        data: { 
+          text: sourceText, 
+          page_num: sourcePage, 
+          pdf_id: sourcePdfId
+        },
+        success: function(response) {
+          resolve(response);
+        },
+        error: function(error) {
+          reject(error);
+        }
+      });
+    })
+  }
+
+    
+  function getSources(success, failure) {
+    $.ajax({
+      type: "GET",
+      // The number of recommendations to get.
+      url: "/sources",
       success: function (data) {
         success(data);
       },

@@ -29,13 +29,7 @@ app.get('/pdflist', function (req, res) {
 });
 
 app.get('/recommendations', function(req, res){
-  // At a later date this will distinguish between source sets. 
-  let project = 0;
-  let question = 0;
-  let numRecommendations = 10;
-
-  recommender.getRecommendations(question, database).then((recommendations)=>{
-    console.log(req.query);
+  recommender.getRecommendations(database).then((recommendations)=>{
     if(req.query.num) {
       recommendations = recommendations.splice(0, req.query.num);
     } else {
@@ -43,6 +37,24 @@ app.get('/recommendations', function(req, res){
     }
     res.json(recommendations);
   });
+});
+
+app.get('/sources', function(req, res){
+  database.getSources().then((sources)=>{
+    res.json(sources);
+  });
+});
+
+app.get('/insertsource', function(req, res) {
+  let text = req.query.text;
+  let page_num = req.query.page_num;
+  let pdf_id = req.query.pdf_id;
+  database.insertSource(text, page_num, pdf_id)
+    .then((id) => res.send({sourceId: id}))
+    .catch((err) => {
+      console.log("Database error: "+err);
+      res.status(400).send("Database error: "+err);
+    });
 });
 
 app.use('/', express.static(__dirname + '/local'));
@@ -55,7 +67,10 @@ app.post('/upload', function(req, res) {
     return res.status(400).send('No files were uploaded.');
   }
 
-  console.log(req.files['uploadedFiles']);
+  // If one file was uploaded then turn it into an array so the code can roll on.
+  if(req.files['uploadedFiles'].name) {
+    req.files['uploadedFiles'] = [req.files['uploadedFiles']];
+  }
 
   let promises = [];
   for(let i = 0; i < req.files['uploadedFiles'].length; i++) {
@@ -65,16 +80,16 @@ app.post('/upload', function(req, res) {
 
       file.mv(path, function(err) {
         if (err) {
-          console.log("Error storing file "+file.name);
+          console.log("Error while placing file in storage folder file "+file.name);
           resolve({name:file.name, uploaded:false, error:err});
           return;
         }
         
         database.storePDF(file.name).then(()=>{
+          console.log(file.name+' successfully stored');
           resolve({name:file.name, uploaded:true});
-          console.log(file.name+' stored');
         }).catch((err)=>{
-          console.log(file.name+' failed to store: '+err);
+          console.log(file.name+' failed to store in database: '+err);
           resolve({name:file.name, uploaded:false, error:err});
         });
       });

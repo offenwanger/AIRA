@@ -4,30 +4,31 @@ const sqlite3 = require('sqlite3').verbose();
 let db;
 
 exports.storePDF = function(filename) {
-  let db = getDB();
-
-  return Promise.all([insertPDF(db, filename), fileToSentences(filename)])
-    .catch((err)=>{
-      throw Error("Error inserting PDF: " + err);
-    })
-    .then((results) => {
-      let pdfID = results[0];
-      let fileValues = results[1];
-      console.log("Starting to store PDF");
-      for(let i = 0; i<fileValues.length; i++) {
-        insertLineRow(db, pdfID, i, fileValues[i].startPage, fileValues[i].endPage, 
-          fileValues[i].lineText).catch((err)=>{
-            console.log("Insert Failed: "+ err);
-          });
-      }
-      console.log("Finished storing PDF");
-    });
+  let db;
+  return getDB()
+  .then((database) => {
+    db = database;
+    return Promise.all([insertPDF(db, filename), fileToSentences(filename)])
+  })
+  .catch((err)=>{
+    throw Error("Error inserting PDF: " + err);
+  })
+  .then((results) => {
+    let pdfID = results[0];
+    let fileValues = results[1];
+    console.log("Starting to store PDF");
+    for(let i = 0; i<fileValues.length; i++) {
+      insertLineRow(db, pdfID, i, fileValues[i].startPage, fileValues[i].endPage, 
+        fileValues[i].lineText).catch((err)=>{
+          console.log("Insert Failed: "+ err);
+        });
+    }
+    console.log("Finished storing PDF");
+  });
 }
 
 exports.getAllText = function() {
-  let db = getDB();
-
-  return new Promise((resolve, reject) => {
+  return getDB().then((db) => new Promise((resolve, reject) => {
     db.all(`
       SELECT * FROM Sentences 
       INNER JOIN Pdfs ON Sentences.pdf = Pdfs.id;
@@ -38,13 +39,11 @@ exports.getAllText = function() {
       }
       resolve(allRows);
     });
-  });
+  }));
 }
 
 exports.getAllPdfs = function() {
-  let db = getDB();
-
-  return new Promise((resolve, reject) => {
+  return getDB().then((db) => new Promise((resolve, reject) => {
     db.all("SELECT * FROM Pdfs", function(err, allRows) {
       if (err) {
         reject("Error while fetching pdfs: "+err);
@@ -52,16 +51,34 @@ exports.getAllPdfs = function() {
       }
       resolve(allRows);
     });
-  });
+  })); 
 }
 
-//TODO: get actual sources.
-exports.getSources = function(question) {
-  return [
-    `We invited 24 participants (ages 20-43, M=29, 13 female) to participate in our VR scenarios and used a semistructured interview to explore the experience of exiting VR`,
-    `We recruited 12 participants (6 female, age M=23.5, SD=4.62).`,
-    `We recruited 16 participants from our organization (9 female, 7 male, age 28.8 ± 3.1 years), forming four groups.`
-  ];
+exports.getSources = function() {
+  return getDB().then((db) => new Promise((resolve, reject) => {
+    db.all(`SELECT * FROM Sources 
+            INNER JOIN Pdfs ON Sources.pdf = Pdfs.id;`, function(err, allRows) {
+      if (err) {
+        reject("Error while fetching sources: "+err);
+        return;
+      }
+      resolve(allRows);
+    });
+  }));
+}
+
+exports.insertSource = function(source_text, source_page, source_pdf) {
+  return getDB().then((db) => new Promise((resolve, reject) => {
+    sql = `INSERT INTO 'Sources'(source_text, start_page, pdf) VALUES (?, ?, ?);`;
+    db.run(sql, [source_text, source_page, source_pdf], function(err) {
+      if(err) {
+        reject("Database error while storing "+source_text+": "+err);
+        return;
+      }
+      
+      resolve(this.lastID);
+    });
+  }));
 }
 
 function fileToSentences(filename) {
@@ -108,50 +125,65 @@ function fileToSentences(filename) {
   });
 }
 
-// Should return promise here;
 function getDB() {
-  if(db) return db;
-
-  db = new sqlite3.Database(__dirname + '/db/database.db', (err) => {
-    if (err) {
-      console.log('Database error');
-      console.error(err.message);
+  return new Promise((resolve, reject) => {
+    if(db) {
+      resolve(db);
+      return;
     }
-    console.log('Database connection established.');
 
-    let sql = `
-      CREATE TABLE IF NOT EXISTS Pdfs (
-        id INTEGER PRIMARY KEY, 
-        filename TEXT
-      );
-    `;
-    db.run(sql);
+    db = new sqlite3.Database(__dirname + '/db/database.db', (err) => {
+      if (err) {
+        console.log('Database error while getting database');
+        console.error(err.message);
+        reject(err);
+        return;
+      }
 
-    sql = `
-      CREATE TABLE IF NOT EXISTS Sentences (
-        id INTEGER PRIMARY KEY, 
-        pdf INTEGER,
-        line_number INTEGER,
-        start_page INTEGER,
-        end_page INTEGER,
-        line_text TEXT,
-        FOREIGN KEY(pdf) REFERENCES Pdfs(id)
-      );
-    `;
-    db.run(sql);
-
-    sql = `
-      CREATE TABLE IF NOT EXISTS Sources (
-        id INTEGER PRIMARY KEY, 
-        source_text TEXT
-      );
-    `;
-    db.run(sql, function(err) {
-      if(err) console.log(err);
+      console.log('Database connection established.');
+      Promise.resolve().then(new Promise((res) => {
+        db.run(`
+          CREATE TABLE IF NOT EXISTS Pdfs (
+            id INTEGER PRIMARY KEY, 
+            filename TEXT
+          );
+        `, function(err) {
+            if(err) console.error("Error while creating table Pdfs: "+err);
+            res();
+          });
+      })).then(new Promise((res) => {
+        db.run(`
+          CREATE TABLE IF NOT EXISTS Sentences (
+            id INTEGER PRIMARY KEY, 
+            pdf INTEGER,
+            line_number INTEGER,
+            start_page INTEGER,
+            end_page INTEGER,
+            line_text TEXT,
+            FOREIGN KEY(pdf) REFERENCES Pdfs(id)
+          );
+        `, function(err) {
+            if(err) console.error("Error while creating table Sentences: "+err);
+            res();
+          });
+      })).then(new Promise((res) => {
+        db.run(`
+          CREATE TABLE IF NOT EXISTS Sources (
+            id INTEGER PRIMARY KEY, 
+            source_text TEXT,
+            start_page INTEGER,
+            pdf INTEGER,
+            FOREIGN KEY(pdf) REFERENCES Pdfs(id)
+          );
+        `, function(err) {
+            if(err) console.error("Error while creating table Sentences: "+err);
+            res();
+          });
+      })).then(()=>{
+        resolve(db);
+      });
     });
   });
-
-  return db;
 }
 
 function insertPDF(db, filename) {
