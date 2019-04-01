@@ -121,7 +121,6 @@ body {
   float: left;
 }
 
-
 .left {
   width:25%;
   height: 100%;
@@ -137,6 +136,16 @@ body {
   width: 25%;
 	height: 100%;
 	background: #000;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+#sources-section {
+	height: 80%;
+}
+
+#source-list {
+	height: 97%;
 	overflow-y: scroll;
 	overflow-x: hidden;
 }
@@ -163,49 +172,6 @@ body {
 .column p:hover {
 	background-color: #333
 }
-
-/* ------------------------------------------------
-			Accordion CSS
----------------------------------------------------*/
-	
-	.accordion {
-		background-color: #333;
-		color: white;
-		cursor: pointer;
-		padding: 8px;
-		width: 100%;
-		border: none;
-		text-align: left;
-		outline: none;
-		font-size: 16px;
-	}
-	
-	.active, .accordion:hover {
-		background-color: #ccc; 
-		color: #000;
-	}
-	
-	.panel {
-		padding: 0 5px;
-		display: none;
-		background-color: lightgrey;
-		overflow: hidden;
-	}
-
-	.panel a {
-		background-color: lightgrey;
-		overflow: hidden;
-		color: black;
-	}
-
-	.panel input {
-		margin-left: 18px;
-	}
-
-	.panel .label {
-		color: #333;
-	}
-
 
 /* ------------------------------------------------
 			other CSS

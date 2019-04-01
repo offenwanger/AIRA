@@ -1,73 +1,5 @@
 
-$(window).load(function () {
-  /*********************************
-   * Accordion Code
-   */
-  var acc = document.getElementsByClassName("accordion");
-  var i;
-
-  for (i = 0; i < acc.length; i++) {
-    acc[i].addEventListener("click", function() {
-      // close all the accordions
-      for (j = 0; j < acc.length; j++) {
-        acc[j].classList.remove("active");
-        var panel = acc[j].nextElementSibling;
-        if (panel.style.display === "block") {
-          panel.style.display = "none";
-        }
-      }
-      this.classList.toggle("active");
-      var panel = this.nextElementSibling;
-      if (panel.style.display === "block") {
-        panel.style.display = "none";
-      } else {
-        panel.style.display = "block";
-      }
-    });
-  }
-
-  /*********************************
-   * Popup Window Code
-   */
-  function populatePdfList() {
-    getPdfList((pdfs)=>{
-      pdfs = pdfs.sort(function(a, b) {
-        var textA = a.filename.toUpperCase();
-        var textB = b.filename.toUpperCase();
-        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-      });
-      let pdfList = $("#all-pdfs-list");
-      pdfList.empty();
-      pdfs.forEach((pdf) => {
-        let link = document.createElement("a");
-        link.setAttribute("pdf-id", pdf.id);
-        link.setAttribute("filename", pdf.filename);
-        link.setAttribute("class", "pdf-button");
-        link.innerHTML = pdf.filename;
-        pdfList.append(link);
-      });
-    }, (err) =>{
-      console.error("Could not get PDFs from Server: "+err);
-    });  
-  }
-  populatePdfList();
-
-  $("#see-all-pdfs").click(function(){
-    $('#pdfs-popup').show();
-  });
-  $('#pdfs-popup').click(function(){
-      $('#pdfs-popup').hide();
-  });
-  $('#pdfs-popup-close-button').click(function(){
-      $('#pdfs-popup').hide();
-  });
-  $("#all-pdfs-list").on('click', '.pdf-button', function(){
-    $('#pdfs-popup').hide();
-    showPDF(
-      this.getAttribute("filename"), 
-      this.getAttribute("pdf-id"));
-  });
-  
+$(window).load(function () {  
 
   /*********************************
    * Recommendation Code
@@ -93,7 +25,7 @@ $(window).load(function () {
           lastPDFname = recommendation.row.filename;
         }
         let p = document.createElement("p");
-        p.setAttribute("class", "source-p");
+        p.setAttribute("class", "recommendation-p");
         p.setAttribute("filename", recommendation.row.filename);
         p.setAttribute("pdf-id", recommendation.row.pdf);
         p.setAttribute("startpage", recommendation.row.start_page);
@@ -106,22 +38,21 @@ $(window).load(function () {
   }
   populateRecommendations();
 
-  let lastClickedSource = {};
-
-  $("#recommendation-list").on('click', '.source-p', function() {
-    lastClickedSource = {
+  let lastClickedRecommendation = {};
+  $("#recommendation-list").on('click', '.recommendation-p', function() {
+    lastClickedRecommendation = {
       filename:this.getAttribute("filename"),
       pdfId:this.getAttribute("pdf-id"),
       page:parseInt(this.getAttribute("startpage")),
       text:this.innerHTML
     }
     showPDF(
-      lastClickedSource.filename, 
-      lastClickedSource.pdfId, 
-      lastClickedSource.page);
-    if(currentPdfFilename == lastClickedSource.filename) {
+      lastClickedRecommendation.filename, 
+      lastClickedRecommendation.pdfId, 
+      lastClickedRecommendation.page);
+    if(currentPdfFilename == lastClickedRecommendation.filename) {
       // PDF will not load and trigger this, so just call it here.
-      highlightLastClickedSource();
+      highlightPdf();
     } 
     $('html, body').animate({ scrollTop: 0 }, 'fast');
     
@@ -143,15 +74,35 @@ $(window).load(function () {
       "libs/pdfjs/web/viewer.html?file=" + pdf_url + "#page=" + (page_num?page_num:1));
   }
 
-  function highlightLastClickedSource() {
+  function highlightPdf() {
     waitingOnLoad = false;
+    if(currentPdfFilename == lastClickedRecommendation.filename) {  
+      let divs = getDivsForText(lastClickedRecommendation.text); 
+      if(divs == null) {
+        //Prevent multiple wait loops
+        if(!waitingOnLoad) {
+          waitingOnLoad = true;
+          setTimeout(highlightPdf, 300);
+        }
+      } else {
+        if(divs.length == 0) {
+          console.error("Highlighting error for: "+lastClickedRecommendation.text);
+        }
+        // TODO: Fix the issue where it highlights the entire line regardless of where the 
+        // text starts or ends
+        divs.forEach(div => {
+          $(div).css("background-color", "red");
+        });
+      }   
+    }
+
     if(currentPdfFilename == lastClickedSource.filename) {  
       let divs = getDivsForText(lastClickedSource.text); 
       if(divs == null) {
         //Prevent multiple wait loops
         if(!waitingOnLoad) {
           waitingOnLoad = true;
-          setTimeout(highlightLastClickedSource, 300);
+          setTimeout(highlightPdf, 300);
         }
       } else {
         if(divs.length == 0) {
@@ -160,16 +111,33 @@ $(window).load(function () {
         // TODO: Fix the issue where it highlights the entire line regardless of where the 
         // text starts or ends
         divs.forEach(div => {
-          $(div).css("background-color", "red");
+          $(div).css("background-color", "green");
         });
-        // zooming redraws the text layer, so when zoom is clicked, redraw the highlighting.
-        $("#pdf-iframe").contents().find("#zoomIn").on("click", highlightLastClickedSource);
-        $("#pdf-iframe").contents().find("#zoomOut").on("click", highlightLastClickedSource);
       }   
     }
+
+
   }
 
-  $("#pdf-iframe").load(highlightLastClickedSource);
+  let mutationObserver;
+  let iframeBody;
+  $("#pdf-iframe").load(()=>{
+    if(mutationObserver) mutationObserver.disconnect();
+
+    iframeBody = $("#pdf-iframe").contents().find('body').get()[0];
+    if(!iframeBody) {
+      console.error("Iframe body didn't load!");
+      return;
+    }
+
+    // Options for the observer (which mutations to observe)
+    let config = { childList: true, subtree: true };
+
+    mutationObserver = new MutationObserver(()=>{
+      highlightPdf();
+    });
+    mutationObserver.observe(iframeBody, config);    
+  });
 
   // Upon click this should should trigger click on the #file-to-upload file input element
   // This is better than showing the not-good-looking file input element
@@ -291,11 +259,54 @@ $(window).load(function () {
   function populateSources() {
     getSources((results) =>{
       console.log(results);
+      let sourceList = $("#source-list");
+      sourceList.empty();
+      sources = results.sort(function(a, b) {
+        var textA = a.filename.toUpperCase();
+        var textB = b.filename.toUpperCase();
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+      });
+      let lastPDFname;
+      sources.forEach((source) => {
+        if(lastPDFname != source.filename) {
+          let label = document.createElement("div");
+          label.setAttribute("class", "label");
+          label.innerHTML = source.filename;
+          sourceList.append(label);
+          lastPDFname = source.filename;
+        }
+        let p = document.createElement("p");
+        p.setAttribute("class", "source-p");
+        p.setAttribute("filename", source.filename);
+        p.setAttribute("pdf-id", source.pdf);
+        p.setAttribute("startpage", source.start_page);
+        p.innerHTML = source.source_text;
+        sourceList.append(p);
+      });
     }, (err) =>{
       console.error("Could not get Sources from Server: "+err);
     });
   }
   populateSources();
+  
+  let lastClickedSource = {};
+  $("#source-list").on('click', '.source-p', function() {
+    lastClickedSource = {
+      filename:this.getAttribute("filename"),
+      pdfId:this.getAttribute("pdf-id"),
+      page:parseInt(this.getAttribute("startpage")),
+      text:this.innerHTML
+    }
+    showPDF(
+      lastClickedSource.filename, 
+      lastClickedSource.pdfId, 
+      lastClickedSource.page);
+    if(currentPdfFilename == lastClickedSource.filename) {
+      highlightPdf();
+    } 
+    $('html, body').animate({ scrollTop: 0 }, 'fast');
+    
+  });
 
   function getDivsForText(text) {
     let divs;
@@ -317,7 +328,6 @@ $(window).load(function () {
         sentenceSplit.forEach(sentence => {
           if(sentence.replace(/\s/g,'').length > 0 && 
               textwows.includes(sentence.replace(/\s/g,''))) {
-            console.log("found: "+sentence);
             push = true;
           }
         });
@@ -399,4 +409,47 @@ $(window).load(function () {
       timeout: 60000
     });
   }
+
+  /*********************************
+   * Popup Window Code
+   */
+  function populatePdfList() {
+    getPdfList((pdfs)=>{
+      pdfs = pdfs.sort(function(a, b) {
+        var textA = a.filename.toUpperCase();
+        var textB = b.filename.toUpperCase();
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+      });
+      let pdfList = $("#all-pdfs-list");
+      pdfList.empty();
+      pdfs.forEach((pdf) => {
+        let link = document.createElement("a");
+        link.setAttribute("pdf-id", pdf.id);
+        link.setAttribute("filename", pdf.filename);
+        link.setAttribute("class", "pdf-button");
+        link.innerHTML = pdf.filename;
+        pdfList.append(link);
+      });
+    }, (err) =>{
+      console.error("Could not get PDFs from Server: "+err);
+    });  
+  }
+  populatePdfList();
+
+  $("#see-all-pdfs").click(function(){
+    $('#pdfs-popup').show();
+  });
+  $('#pdfs-popup').click(function(){
+      $('#pdfs-popup').hide();
+  });
+  $('#pdfs-popup-close-button').click(function(){
+      $('#pdfs-popup').hide();
+  });
+  $("#all-pdfs-list").on('click', '.pdf-button', function(){
+    $('#pdfs-popup').hide();
+    showPDF(
+      this.getAttribute("filename"), 
+      this.getAttribute("pdf-id"));
+  });
+
 });

@@ -54,55 +54,10 @@
 			<a id="upload-button">+ upload PDF</a> 
 		</div>
 
-		<div id="questions-scetion">
-				<div class="header-label"> Questions </div>
-				<div style="background-color: #333; margin:10px">
-
-						<button class="accordion">How many participants are in each paper?</button>
-						
-						<div class="panel">
-							<a>✎ Edit Question</a>
-							<div class="label">Sources</div>
-							<p>There were five participants in the first study.</p>
-							<input type="text" value = 5></input>
-
-							<p>The second study included 7 participants.</p>
-							<input type="text" value = 7></input>
-							
-							<a style="display:block">... see all sources</a>
-						</div>
-
-						<button class="accordion">
-							Given the lack of information generally provided to people to solve complex 
-							issues, is this question mainly just meant to be veyr long?
-						</button>
-						<div class="panel">
-								<a>✎ Edit Question</a>
-								<div class="label">Sources</div>
-								<p>
-									Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
-									Lorem Ipsum has been the industry's standard dummy text ever since the 
-									1500s, when an unknown printer took a galley of type and scrambled it to 
-									make a type specimen book. It has survived not only five centuries, but 
-									also the leap into electronic typesetting, remaining essentially unchanged. 
-									It was popularised in the 1960s with the release of Letraset sheets 
-									containing Lorem Ipsum passages, and more recently with desktop publishing 
-									software like Aldus PageMaker including versions of Lorem Ipsum.</p>
-								<input type="text" value = 7></input>
-								<a style="display:block">... see all sources</a>
-						</div>
-
-						<button class="accordion">blah</button>
-						<div class="panel">
-								<a>✎ Edit Question</a>
-								<div class="label">Sources</div>
-								<a style="display:block">... see all sources</a>
-						</div>
-
-						<a>... see all questions</a>
-						<a>+ add question</a>
-				</div>
-			</div>
+		<div id="sources-section">
+				<div class="header-label"> Sources </div>
+				<div id="source-list"></div>
+		</div>
 	</div>
 		
 	<div class="column middle">
@@ -112,8 +67,7 @@
 					width="100%"
 					height="100%"
 					style="border: none;"></iframe>
-					
-		<button id="tag-source">Tag Source</button>
+			<button id="tag-source">Tag Source</button>
 		</div>
 	</div>
 
