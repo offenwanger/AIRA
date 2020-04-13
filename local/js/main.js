@@ -6,52 +6,31 @@ $(window).load(function () {
    */
   let allRecommendations;
   function populateRecommendations(fetch = true) {
+    let recommendationList = $("#recommendation-list");
+    recommendationList.empty();
+    let p = document.createElement("p");
+    p.innerHTML = "Loading";
+    recommendationList.append(p);
+
     function populate(results) {
       allRecommendations = results;
       recommendations = allRecommendations;
 
       let recommendationList = $("#recommendation-list");
       recommendationList.empty();
-      
-      if(document.getElementById('filterHasSource').checked) {
-        let filledIds = [];
-        sources.forEach(source=> {
-          filledIds.push(source.pdf);
-        });
-
-        recommendations = recommendations.filter(
-          r => !filledIds.includes(r.row.pdf));
-      }
 
       recommendations = recommendations.sort(function(a, b) {
-        var textA = a.row.filename.toUpperCase();
-        var textB = b.row.filename.toUpperCase();
-        if(textA == textB) return a.measure > b.measure ? -1 : 1;
-        return (textA < textB) ? -1 : 1;
+        a.measure > b.measure ? -1 : 1;
       });
 
-      let lastPDFname;
-      let numRecommendationsForPdf = 0;
-      let MAX_RECOMMENDATIONS_PER_PDF = 3;
       recommendations.forEach((recommendation) => {
-        if(lastPDFname != recommendation.row.filename) {
-          let label = document.createElement("div");
-          label.setAttribute("class", "label");
-          label.innerHTML = recommendation.row.filename;
-          recommendationList.append(label);
-          lastPDFname = recommendation.row.filename;
-          numRecommendationsForPdf = 0;
-        }
-        if(numRecommendationsForPdf < MAX_RECOMMENDATIONS_PER_PDF) {
-          let p = document.createElement("p");
-          p.setAttribute("class", "recommendation-p");
-          p.setAttribute("filename", recommendation.row.filename);
-          p.setAttribute("pdf-id", recommendation.row.pdf);
-          p.setAttribute("startpage", recommendation.row.start_page);
-          p.innerHTML = recommendation.text;
-          recommendationList.append(p);
-          numRecommendationsForPdf ++;
-        }
+        let p = document.createElement("p");
+        p.setAttribute("class", "recommendation-p");
+        p.setAttribute("filename", currentPdfFilename);
+        p.setAttribute("pdf-id", 0);
+        p.setAttribute("startpage", recommendation.start_page);
+        p.innerHTML = recommendation.text;
+        recommendationList.append(p);
       });
     };
 
@@ -63,7 +42,6 @@ $(window).load(function () {
       populate(allRecommendations);
     }
   }
-  populateRecommendations();
 
   let lastClickedRecommendation = {};
   $("#recommendation-list").on('click', '.recommendation-p', function() {
@@ -83,10 +61,6 @@ $(window).load(function () {
     } 
     $('html, body').animate({ scrollTop: 0 }, 'fast');
     
-  });
-
-  $('#filterHasSource').change(function() {
-    populateRecommendations(false);
   });
 
   /**********************************
@@ -192,9 +166,8 @@ $(window).load(function () {
       const upload = new Upload(files);
 
       upload.doUpload((results)=>{
-          populatePdfList();
-          console.log("Upload results:")
-          console.log(results);
+        showPDF(results.name);
+        populateRecommendations();
       }, (error)=>{
           alert(error.responseText);
       });
@@ -276,7 +249,6 @@ $(window).load(function () {
       let page = getPageForText(lastSelectedText);
       uploadSource(text, page, pdf).then(()=>{
         populateSources();
-        populateRecommendations();
       }).catch((err) => {
         console.error(err);
       });
@@ -335,20 +307,12 @@ $(window).load(function () {
           $(this).parent().remove();
           deleteSource($(this).attr("source-id"), ()=>{
             populateSources();
-            populateRecommendations();
           });
         })
         $(p).append(button);
 
         sourceList.append(p);
       });
-
-      // If these loaded after the recommendations and we're set to filter,
-      // then rerun in order to do the filter.
-      if(allRecommendations && allRecommendations.length > 0 && 
-        document.getElementById('filterHasSource').checked){
-          populateRecommendations(false);
-      }
     }, (err) =>{
       console.error("Could not get Sources from Server: "+err);
     });

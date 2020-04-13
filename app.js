@@ -4,9 +4,13 @@ const fileUpload = require('express-fileupload');
 const app = express();
 const formidable = require('formidable')
 const database = require("./server/database.js");
-const recommender = require("./server/recommender.js");
+// const recommender = require("./server/recommender.js");
+const recommender = require("./server/logRecommender.js");
+const fs = require('fs');
 
 const port = 3333;
+
+let recommendations;
 
 console.log("************* Starting the AIRA server *************")
 
@@ -29,9 +33,13 @@ app.get('/pdflist', function (req, res) {
 });
 
 app.get('/recommendations', function(req, res){
-  recommender.getRecommendations(database).then((recommendations)=>{
-    res.json(recommendations);
-  });
+  if(recommendations) {
+    recommendations.then((result)=>{
+      res.json(result);
+    });
+  } else {
+    res.status(400).send("No recommendations in progress");
+  }
 });
 
 app.get('/sources', function(req, res){
@@ -83,37 +91,31 @@ app.post('/upload', function(req, res) {
     return res.status(400).send('No files were uploaded.');
   }
 
-  // If one file was uploaded then turn it into an array so the code can roll on.
-  if(req.files['uploadedFiles'].name) {
-    req.files['uploadedFiles'] = [req.files['uploadedFiles']];
+  if(!req.files['uploadedFiles'].name) {
+    return res.status(400).send('Too many files uploaded.');
+  } 
+
+  
+  let file = req.files['uploadedFiles'];
+  let path = __dirname + '/server/PDFs/' + file.name;
+
+  if (!fs.existsSync(__dirname + '/server/PDFs/')){
+    fs.mkdirSync(__dirname + '/server/PDFs/');
   }
 
-  let promises = [];
-  for(let i = 0; i < req.files['uploadedFiles'].length; i++) {
-    let file = req.files['uploadedFiles'][i];
-    promises[i] = new Promise(function(resolve, reject) {
-      let path = __dirname + '/server/PDFs/' + file.name;
+  console.log("Storing file")
+  file.mv(path, function(err) {
+    console.log("done storing")
+    if (err) {
+      console.log("Error while placing file in storage folder file "+file.name);
+      resolve({name:file.name, uploaded:false, error:err});
+      return;
+    }
+    
+    recommendations = recommender.getRecommendations(file.name);
 
-      file.mv(path, function(err) {
-        if (err) {
-          console.log("Error while placing file in storage folder file "+file.name);
-          resolve({name:file.name, uploaded:false, error:err});
-          return;
-        }
-        
-        database.storePDF(file.name).then(()=>{
-          console.log(file.name+' successfully stored');
-          resolve({name:file.name, uploaded:true});
-        }).catch((err)=>{
-          console.log(file.name+' failed to store in database: '+err);
-          resolve({name:file.name, uploaded:false, error:err});
-        });
-      });
-    });
-  }
-
-  Promise.all(promises).then((results) => {
-    res.send(results);
+    res.send({name:file.name, uploaded:true});
+    
   });
 });
 

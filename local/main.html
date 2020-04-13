@@ -36,28 +36,19 @@
 				<i class="material-icons">menu</i>
 		</button>
 		<div class="dropdown-content">
-			<a class="unimplemented">New Project</a>
-			<a class="unimplemented">Open Project</a>
+			<a id="upload-button">+ upload PDF</a> 
 		</div>
 	</div>
 	<div class="page-header-name"> Project 1 </div> 
 </div>
 
 <div class="row">
-	<div class="column left">
-		<div class="header-label"> Recent PDFs </div>
-		<div id="pdf-section">
-			<div id="recent-pdfs">
-				<!-- TODO: Add buttons here for the last three PDFs openened. -->
-			</div>
-			<a id="see-all-pdfs">... see all PDFs</a>
-			<a id="upload-button">+ upload PDF</a> 
+	<div class="column right">
+		<div class="header-label"> 
+			Likely Sentences <br> 
 		</div>
-
-		<div id="sources-section">
-				<div class="header-label"> Sources </div>
-				<div id="source-list"></div>
-		</div>
+		<img src="img/slider.png" alt="" width="100%">
+		<div id="recommendation-list"></div>
 	</div>
 		
 	<div class="column middle">
@@ -71,14 +62,10 @@
 		</div>
 	</div>
 
-	
-	<div class="column right">
-		<div class="header-label"> 
-			Recommended Sources <br> 
-			<input id="filterHasSource" type="checkbox" name="filterHasSource" value="filter">Filter by has source</input>
-		</div>
-		<div id="recommendation-list"></div>
+	<div class="column left">
+		<iframe src="https://docs.google.com/forms/d/e/1FAIpQLScwfXT1Et5S-LZgNVzieUOPVXoNyNjg2Yusc74smAVpO4zUbw/viewform" frameborder="0" width="100%" height="100%"></iframe>
 	</div>
+
 
 </div>
 

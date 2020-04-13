@@ -3,3 +3,8 @@ package-lock.json
 server/PDFs
 server/db/database.db
 server/db/database.db-journal
+server/input/
+server/paper_text/
+server/text_files/
+server/__pycache__/
+server/saved/
